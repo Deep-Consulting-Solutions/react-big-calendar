@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/Deep-Consulting-Solutions/react-big-calendar/compare/v1.0.0...v1.1.0) (2024-10-17)
+
+
+### Features
+
+* release fix ([4bdd135](https://github.com/Deep-Consulting-Solutions/react-big-calendar/commit/4bdd1355e34192041102d8eade57078038d2b746))
+
 # 1.0.0 (2024-10-17)
 
 ### Bug Fixes
