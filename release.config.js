@@ -4,7 +4,7 @@
  * and commit those changes and a version change in the package.json
  */
 module.exports = {
-  branches: ['master'],
+  branches: ['develop'],
   plugins: [
     '@semantic-release/commit-analyzer',
     '@semantic-release/release-notes-generator',
@@ -14,7 +14,6 @@ module.exports = {
         changelogFile: 'CHANGELOG.md',
       },
     ],
-    '@semantic-release/npm',
     '@semantic-release/github',
     [
       '@semantic-release/git',
