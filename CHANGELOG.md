@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/Deep-Consulting-Solutions/react-big-calendar/compare/v1.1.0...v1.1.1) (2024-10-18)
+
+
+### Bug Fixes
+
+* **grouping-calendar-week:** :bug: fixed week grouping view alignment ([90aafd3](https://github.com/Deep-Consulting-Solutions/react-big-calendar/commit/90aafd376841f1c6856e2874d1d5d7f97d30b738))
+
 # [1.1.0](https://github.com/Deep-Consulting-Solutions/react-big-calendar/compare/v1.0.0...v1.1.0) (2024-10-17)
 
 
