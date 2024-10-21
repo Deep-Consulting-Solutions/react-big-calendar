@@ -248,7 +248,7 @@ export default class TimeGrid extends Component {
       >
         <TimeGridHeader
           range={range}
-          events={allDayEvents}
+          events={this.props.isGrouping ? events : allDayEvents}
           width={width}
           rtl={rtl}
           getNow={getNow}
@@ -275,6 +275,8 @@ export default class TimeGrid extends Component {
           onDrillDown={this.props.onDrillDown}
           getDrilldownView={this.props.getDrilldownView}
           resizable={resizable}
+          hideHeader={this.props.hideHeader}
+          hideGutter={this.props.isGrouping}
         />
         {this.props.popup && this.renderOverlay()}
         <div
@@ -282,24 +284,28 @@ export default class TimeGrid extends Component {
           className="rbc-time-content"
           onScroll={this.handleScroll}
         >
-          <TimeGutter
-            date={start}
-            ref={this.gutterRef}
-            localizer={localizer}
-            min={localizer.merge(start, min)}
-            max={localizer.merge(start, max)}
-            step={this.props.step}
-            getNow={this.props.getNow}
-            timeslots={this.props.timeslots}
-            components={components}
-            className="rbc-time-gutter"
-            getters={getters}
-          />
-          {this.renderEvents(
-            range,
-            rangeEvents,
-            rangeBackgroundEvents,
-            getNow()
+          {this.props.isGrouping ? null : (
+            <>
+              <TimeGutter
+                date={start}
+                ref={this.gutterRef}
+                localizer={localizer}
+                min={localizer.merge(start, min)}
+                max={localizer.merge(start, max)}
+                step={this.props.step}
+                getNow={this.props.getNow}
+                timeslots={this.props.timeslots}
+                components={components}
+                className="rbc-time-gutter"
+                getters={getters}
+              />
+              {this.renderEvents(
+                range,
+                rangeEvents,
+                rangeBackgroundEvents,
+                getNow()
+              )}
+            </>
           )}
         </div>
       </div>
@@ -470,9 +476,13 @@ TimeGrid.propTypes = {
       y: PropTypes.number,
     }),
   ]),
+  isGrouping: PropTypes.bool,
+  hideHeader: PropTypes.bool,
 }
 
 TimeGrid.defaultProps = {
   step: 30,
   timeslots: 2,
+  isGrouping: false,
+  hideHeader: false,
 }
