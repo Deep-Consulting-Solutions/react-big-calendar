@@ -1,3 +1,12 @@
+# [1.2.0](https://github.com/Deep-Consulting-Solutions/react-big-calendar/compare/v1.1.1...v1.2.0) (2024-10-22)
+
+
+### Features
+
+* :arrow-up: added grouping for day view ([fe73134](https://github.com/Deep-Consulting-Solutions/react-big-calendar/commit/fe73134523af51b6e313200c3fbe35a4d127838d))
+* :arrow-up: added grouping for day view ([a0fa26e](https://github.com/Deep-Consulting-Solutions/react-big-calendar/commit/a0fa26e6862224997b6d952bf4597d78fc838026))
+* :arrow-up: added grouping for week view ([3d3dbba](https://github.com/Deep-Consulting-Solutions/react-big-calendar/commit/3d3dbbadef0bf6f1992196c58c68cf9e8d3d60b3))
+
 ## [1.1.1](https://github.com/Deep-Consulting-Solutions/react-big-calendar/compare/v1.1.0...v1.1.1) (2024-10-18)
 
 
