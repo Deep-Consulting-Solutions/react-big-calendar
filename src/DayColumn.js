@@ -136,7 +136,8 @@ class DayColumn extends React.Component {
           'rbc-time-column',
           isNow && 'rbc-now',
           isNow && 'rbc-today', // WHY
-          selecting && 'rbc-slot-selecting'
+          selecting && 'rbc-slot-selecting',
+          this.props.useRow && 'rbc-time-row rbc-day-slot-day-grouping'
         )}
         slotMetrics={slotMetrics}
         resource={resource}
@@ -148,6 +149,7 @@ class DayColumn extends React.Component {
             resource={resource}
             getters={getters}
             components={components}
+            useRow={this.props.isDayGrouping}
           />
         ))}
         <EventContainer
@@ -255,6 +257,7 @@ class DayColumn extends React.Component {
           isBackgroundEvent={isBackgroundEvent}
           onKeyPress={(e) => this._keyPress(event, e)}
           resizable={resizable}
+          useRow={this.props.isDayGrouping}
         />
       )
     })
@@ -441,6 +444,8 @@ DayColumn.propTypes = {
   resource: PropTypes.any,
 
   dayLayoutAlgorithm: DayLayoutAlgorithmPropType,
+
+  useRow: PropTypes.bool,
 }
 
 DayColumn.defaultProps = {

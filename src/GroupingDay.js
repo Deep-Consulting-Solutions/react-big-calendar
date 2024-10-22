@@ -6,12 +6,12 @@ import { DayLayoutAlgorithmPropType } from './utils/propTypes'
 
 import TimeGrid from './TimeGrid'
 
-class GroupingWeek extends React.Component {
+class GroupingDay extends React.Component {
   render() {
     /**
      * This allows us to default min, max, and scrollToTime
      * using our localizer. This is necessary until such time
-     * as TimeGrid is converted to a functional component.
+     * as TODO: TimeGrid is converted to a functional component.
      */
     let {
       date,
@@ -22,25 +22,26 @@ class GroupingWeek extends React.Component {
       enableAutoScroll = true,
       ...props
     } = this.props
-    let range = GroupingWeek.range(date, this.props)
+    let range = GroupingDay.range(date, { localizer: localizer })
 
     return (
       <TimeGrid
         {...props}
         range={range}
-        eventOffset={15}
+        eventOffset={10}
         localizer={localizer}
         min={min}
         max={max}
         scrollToTime={scrollToTime}
         enableAutoScroll={enableAutoScroll}
-        isWeekGrouping
+        isDayGrouping
+        hideTimeSlots={this.props.hideHeader}
       />
     )
   }
 }
 
-GroupingWeek.propTypes = {
+GroupingDay.propTypes = {
   date: PropTypes.instanceOf(Date).isRequired,
 
   events: PropTypes.array.isRequired,
@@ -92,8 +93,6 @@ GroupingWeek.propTypes = {
   popup: PropTypes.bool,
   handleDragStart: PropTypes.func,
 
-  hideHeader: PropTypes.bool,
-
   popupOffset: PropTypes.oneOfType([
     PropTypes.number,
     PropTypes.shape({
@@ -103,32 +102,24 @@ GroupingWeek.propTypes = {
   ]),
 }
 
-GroupingWeek.defaultProps = TimeGrid.defaultProps
+GroupingDay.range = (date, { localizer }) => {
+  return [localizer.startOf(date, 'day')]
+}
 
-GroupingWeek.navigate = (date, action, { localizer }) => {
+GroupingDay.navigate = (date, action, { localizer }) => {
   switch (action) {
     case navigate.PREVIOUS:
-      return localizer.add(date, -1, 'week')
+      return localizer.add(date, -1, 'day')
 
     case navigate.NEXT:
-      return localizer.add(date, 1, 'week')
+      return localizer.add(date, 1, 'day')
 
     default:
       return date
   }
 }
 
-GroupingWeek.range = (date, { localizer }) => {
-  let firstOfWeek = localizer.startOfWeek()
-  let start = localizer.startOf(date, 'week', firstOfWeek)
-  let end = localizer.endOf(date, 'week', firstOfWeek)
+GroupingDay.title = (date, { localizer }) =>
+  localizer.format(date, 'dayHeaderFormat')
 
-  return localizer.range(start, end)
-}
-
-GroupingWeek.title = (date, { localizer }) => {
-  let [start, ...rest] = GroupingWeek.range(date, { localizer })
-  return localizer.format({ start, end: rest.pop() }, 'dayRangeHeaderFormat')
-}
-
-export default GroupingWeek
+export default GroupingDay

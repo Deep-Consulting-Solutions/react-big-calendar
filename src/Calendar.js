@@ -26,6 +26,7 @@ import transform from 'lodash/transform'
 import mapValues from 'lodash/mapValues'
 import { wrapAccessor } from './utils/accessors'
 import GroupingWeek from './GroupingWeek'
+import GroupingDay from './GroupingDay'
 
 function viewNames(_views) {
   if (Array.isArray(_views)) {
@@ -1060,6 +1061,8 @@ class Calendar extends React.Component {
 
     if (grouping?.resources && this.props.view === views.WEEK) {
       View = GroupingWeek
+    } else if (grouping?.resources && this.props.view === views.DAY) {
+      View = GroupingDay
     }
 
     const GroupingView = this.getGroupingView()

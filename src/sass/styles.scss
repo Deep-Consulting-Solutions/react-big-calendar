@@ -119,6 +119,11 @@
 }
 
 .rbc-header-label-grouping-column-day {
+  min-height: 42px;
+  border-bottom: 1px solid $cell-border;
+}
+
+.rbc-header-label-grouping-column-day {
   min-height: 43px;
   border-bottom: 2px solid $cell-border;
 }
@@ -164,6 +169,8 @@
   content: ''; 
   height: 1px;
 }
+
+
 
 
 .rbc-label-grouping-column {
@@ -218,6 +225,15 @@
 
 .rbc-today {
   background-color: $today-highlight-bg;
+}
+
+.rbc-day-slot-day-grouping{
+  width: auto !important;
+}
+
+.rbc-timeslot-group-row{
+  width: 100px;
+  border-left-width: 0px !important;
 }
 
 @import './toolbar';

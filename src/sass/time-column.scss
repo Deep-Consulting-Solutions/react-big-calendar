@@ -10,12 +10,21 @@
   }
 }
 
+.rbc-time-row{
+  flex-direction: row;
+  min-height: auto;
+}
+
 
 .rbc-timeslot-group {
   border-bottom: 1px solid $cell-border;
   min-height: 40px;
   display: flex;
   flex-flow: column nowrap;
+}
+
+.rbc-timeslot-group {
+  border-right: 1px solid $cell-border;
 }
 
 .rbc-time-gutter,

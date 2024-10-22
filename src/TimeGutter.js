@@ -32,6 +32,7 @@ const TimeGutter = ({
   components,
   getters,
   gutterRef,
+  useRow,
 }) => {
   const { timeGutterWrapper: TimeGutterWrapper } = components
   const { start, end } = useMemo(
@@ -83,7 +84,12 @@ const TimeGutter = ({
 
   return (
     <TimeGutterWrapper slotMetrics={slotMetrics}>
-      <div className="rbc-time-gutter rbc-time-column" ref={gutterRef}>
+      <div
+        className={`rbc-time-gutter rbc-time-column ${
+          useRow ? 'rbc-time-row' : ''
+        }`}
+        ref={gutterRef}
+      >
         {slotMetrics.groups.map((grp, idx) => {
           return (
             <TimeSlotGroup
@@ -93,6 +99,7 @@ const TimeGutter = ({
               components={components}
               renderSlot={renderSlot}
               getters={getters}
+              useRow={useRow}
             />
           )
         })}
@@ -113,6 +120,7 @@ TimeGutter.propTypes = {
   localizer: PropTypes.object.isRequired,
   resource: PropTypes.string,
   gutterRef: PropTypes.any,
+  useRow: PropTypes.bool,
 }
 
 export default React.forwardRef((props, ref) => (
