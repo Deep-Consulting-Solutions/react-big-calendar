@@ -49,6 +49,16 @@
   }
 }
 
+.rbc-time-view-day {
+  border-bottom: 0px;
+  border-top-width: 0px;
+}
+
+.rbc-time-view-day-first {
+  border-top-width: 1px;
+}
+
+
 .rbc-time-header {
   display: flex;
   flex: 0 0 auto; // should not shrink below height
@@ -129,6 +139,12 @@
     user-select: none;
     -webkit-user-select: none;
   }
+}
+
+
+.rbc-time-content-day-grouping {
+  flex-direction: column;
+  border-top: 0px;
 }
 
 .rbc-current-time-indicator {

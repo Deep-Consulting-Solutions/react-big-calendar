@@ -82,6 +82,12 @@
   align-items: stretch;
 }
 
+.rbc-week-grouping-wrapper{
+  display: flex;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
 .rbc-grouping-children-wrapper{
   flex: 1;
 }
@@ -108,14 +114,16 @@
 }
 
 .rbc-header-label-grouping-column-week {
-  min-height: 63px;
-  border-bottom: 2px solid $cell-border;
+  min-height: 21px;
+  border-bottom: 1px solid $cell-border;
 }
 
 .rbc-header-label-grouping-column-day {
-  min-height: 43px;
-  border-bottom: 2px solid $cell-border;
+  min-height: 41px;
+  border-bottom: 1px solid $cell-border;
 }
+
+
 
 .rbc-label-container-grouping-column {
   flex: 1;
@@ -128,8 +136,44 @@
 
 
 .rbc-label-container-grouping-column-week {
-  border-bottom: 1px solid $cell-border;
+  border-bottom: 2px solid $cell-border;
+  position: relative;
 }
+
+.rbc-label-container-grouping-column-day {
+  border-bottom: 1px solid $cell-border;
+  position: relative;
+}
+
+.rbc-label-container-grouping-column-week-first-facility.rbc-label-container-grouping-column-week::before{
+  display: none;
+}
+
+.rbc-label-container-grouping-column-week::before {
+  position: absolute;
+  border-top: 1px solid $cell-border;
+  left: 0px;
+  right: 0px;
+  top: 0px;
+  z-index: 100;
+  content: ''; 
+  height: 1px;
+}
+
+
+.rbc-label-container-grouping-column-week::after {
+  position: absolute;
+  border-bottom: 1px solid $cell-border;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  z-index: 100;
+  content: ''; 
+  height: 1px;
+}
+
+
+
 
 .rbc-label-grouping-column {
   overflow: hidden;
@@ -183,6 +227,15 @@
 
 .rbc-today {
   background-color: $today-highlight-bg;
+}
+
+.rbc-day-slot-day-grouping{
+  width: auto !important;
+}
+
+.rbc-timeslot-group-row{
+  width: 100px;
+  border-left-width: 0px !important;
 }
 
 @import './toolbar';

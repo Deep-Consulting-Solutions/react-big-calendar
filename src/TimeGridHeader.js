@@ -143,12 +143,14 @@ class TimeGridHeader extends React.Component {
         ref={scrollRef}
         className={clsx('rbc-time-header', isOverflowing && 'rbc-overflowing')}
       >
-        <div
-          className="rbc-label rbc-time-header-gutter"
-          style={{ width, minWidth: width, maxWidth: width }}
-        >
-          {TimeGutterHeader && <TimeGutterHeader />}
-        </div>
+        {this.props.hideGutter ? null : (
+          <div
+            className="rbc-label rbc-time-header-gutter"
+            style={{ width, minWidth: width, maxWidth: width }}
+          >
+            {TimeGutterHeader && <TimeGutterHeader />}
+          </div>
+        )}
 
         {resources.map(([id, resource], idx) => (
           <div className="rbc-time-header-content" key={id || idx}>
@@ -163,13 +165,15 @@ class TimeGridHeader extends React.Component {
                 </div>
               </div>
             )}
-            <div
-              className={`rbc-row rbc-time-header-cell${
-                range.length <= 1 ? ' rbc-time-header-cell-single-day' : ''
-              }`}
-            >
-              {this.renderHeaderCells(range)}
-            </div>
+            {this.props.hideHeader ? null : (
+              <div
+                className={`rbc-row rbc-time-header-cell${
+                  range.length <= 1 ? ' rbc-time-header-cell-single-day' : ''
+                }`}
+              >
+                {this.renderHeaderCells(range)}
+              </div>
+            )}
             <DateContentRow
               isAllDay
               rtl={rtl}
@@ -232,6 +236,8 @@ TimeGridHeader.propTypes = {
   onShowMore: PropTypes.func,
   getDrilldownView: PropTypes.func.isRequired,
   scrollRef: PropTypes.any,
+  hideHeader: PropTypes.bool,
+  hideGutter: PropTypes.bool,
 }
 
 export default TimeGridHeader

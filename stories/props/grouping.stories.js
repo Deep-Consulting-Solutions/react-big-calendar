@@ -46,8 +46,8 @@ const Template = (args) => (
 export const Grouping = Template.bind({})
 Grouping.storyName = 'grouping'
 Grouping.args = {
-  defaultDate: new Date(2015, 3, 4),
-  defaultView: Views.WEEK,
+  defaultDate: new Date(2015, 3, 1),
+  defaultView: Views.DAY,
   events: resourceEvents,
   localizer: mLocalizer,
   grouping,

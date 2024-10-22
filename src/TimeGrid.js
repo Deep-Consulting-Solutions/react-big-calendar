@@ -175,6 +175,7 @@ export default class TimeGrid extends Component {
             events={daysEvents}
             backgroundEvents={daysBackgroundEvents}
             dayLayoutAlgorithm={dayLayoutAlgorithm}
+            useRow={this.props.isDayGrouping}
           />
         )
       })
@@ -242,64 +243,81 @@ export default class TimeGrid extends Component {
       <div
         className={clsx(
           'rbc-time-view',
-          resources && 'rbc-time-view-resources'
+          resources && 'rbc-time-view-resources',
+          this.props.isDayGrouping && 'rbc-time-view-day',
+          this.props.isDayGrouping &&
+            this.props.isDayGroupingFirst &&
+            'rbc-time-view-day-first'
         )}
         ref={this.containerRef}
       >
-        <TimeGridHeader
-          range={range}
-          events={allDayEvents}
-          width={width}
-          rtl={rtl}
-          getNow={getNow}
-          localizer={localizer}
-          selected={selected}
-          allDayMaxRows={
-            this.props.showAllEvents
-              ? Infinity
-              : this.props.allDayMaxRows ?? Infinity
-          }
-          resources={this.memoizedResources(resources, accessors)}
-          selectable={this.props.selectable}
-          accessors={accessors}
-          getters={getters}
-          components={components}
-          scrollRef={this.scrollRef}
-          isOverflowing={this.state.isOverflowing}
-          longPressThreshold={longPressThreshold}
-          onSelectSlot={this.handleSelectAllDaySlot}
-          onSelectEvent={this.handleSelectEvent}
-          onShowMore={this.handleShowMore}
-          onDoubleClickEvent={this.props.onDoubleClickEvent}
-          onKeyPressEvent={this.props.onKeyPressEvent}
-          onDrillDown={this.props.onDrillDown}
-          getDrilldownView={this.props.getDrilldownView}
-          resizable={resizable}
-        />
+        {this.props.isDayGrouping ? null : (
+          <TimeGridHeader
+            range={range}
+            events={this.props.isWeekGrouping ? events : allDayEvents}
+            width={width}
+            rtl={rtl}
+            getNow={getNow}
+            localizer={localizer}
+            selected={selected}
+            allDayMaxRows={
+              this.props.showAllEvents
+                ? Infinity
+                : this.props.allDayMaxRows ?? Infinity
+            }
+            resources={this.memoizedResources(resources, accessors)}
+            selectable={this.props.selectable}
+            accessors={accessors}
+            getters={getters}
+            components={components}
+            scrollRef={this.scrollRef}
+            isOverflowing={this.state.isOverflowing}
+            longPressThreshold={longPressThreshold}
+            onSelectSlot={this.handleSelectAllDaySlot}
+            onSelectEvent={this.handleSelectEvent}
+            onShowMore={this.handleShowMore}
+            onDoubleClickEvent={this.props.onDoubleClickEvent}
+            onKeyPressEvent={this.props.onKeyPressEvent}
+            onDrillDown={this.props.onDrillDown}
+            getDrilldownView={this.props.getDrilldownView}
+            resizable={resizable}
+            hideHeader={this.props.hideHeader}
+            hideGutter={this.props.isWeekGrouping}
+          />
+        )}
         {this.props.popup && this.renderOverlay()}
         <div
           ref={this.contentRef}
-          className="rbc-time-content"
+          className={`rbc-time-content ${
+            this.props.isDayGrouping ? 'rbc-time-content-day-grouping' : ''
+          }`}
           onScroll={this.handleScroll}
         >
-          <TimeGutter
-            date={start}
-            ref={this.gutterRef}
-            localizer={localizer}
-            min={localizer.merge(start, min)}
-            max={localizer.merge(start, max)}
-            step={this.props.step}
-            getNow={this.props.getNow}
-            timeslots={this.props.timeslots}
-            components={components}
-            className="rbc-time-gutter"
-            getters={getters}
-          />
-          {this.renderEvents(
-            range,
-            rangeEvents,
-            rangeBackgroundEvents,
-            getNow()
+          {this.props.isWeekGrouping ? null : (
+            <>
+              {this.props.hideTimeSlots ? null : (
+                <TimeGutter
+                  date={start}
+                  ref={this.gutterRef}
+                  localizer={localizer}
+                  min={localizer.merge(start, min)}
+                  max={localizer.merge(start, max)}
+                  step={this.props.step}
+                  getNow={this.props.getNow}
+                  timeslots={this.props.timeslots}
+                  components={components}
+                  className="rbc-time-gutter"
+                  getters={getters}
+                  useRow={this.props.isDayGrouping}
+                />
+              )}
+              {this.renderEvents(
+                range,
+                rangeEvents,
+                rangeBackgroundEvents,
+                getNow()
+              )}
+            </>
           )}
         </div>
       </div>
@@ -470,9 +488,17 @@ TimeGrid.propTypes = {
       y: PropTypes.number,
     }),
   ]),
+  isWeekGrouping: PropTypes.bool,
+  hideHeader: PropTypes.bool,
+  isDayGrouping: PropTypes.bool,
+  hideTimeSlots: PropTypes.bool,
+  isDayGroupingFirst: PropTypes.bool,
 }
 
 TimeGrid.defaultProps = {
   step: 30,
   timeslots: 2,
+  isWeekGrouping: false,
+  isDayGrouping: false,
+  hideHeader: false,
 }

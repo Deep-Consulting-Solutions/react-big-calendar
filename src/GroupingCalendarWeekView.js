@@ -7,14 +7,20 @@ export const GroupingCalendarWeekView = ({
   grouping,
 }) => {
   return (
-    <div className="rbc-grouping-wrapper">
+    <div className="rbc-week-grouping-wrapper">
       <div className="rbc-grouping-column">
         {index === 0 ? (
           <div className="rbc-header-label-grouping-column rbc-header-label-grouping-column-week">
             <span>{grouping.title}</span>
           </div>
         ) : null}
-        <div className="rbc-label-container-grouping-column rbc-label-container-grouping-column-week">
+        <div
+          className={`rbc-label-container-grouping-column ${
+            index === 0
+              ? 'rbc-label-container-grouping-column-week-first-facility'
+              : ''
+          } rbc-label-container-grouping-column-week`}
+        >
           <div className="rbc-label-grouping-column">
             <span>{resource.title}</span>
           </div>
