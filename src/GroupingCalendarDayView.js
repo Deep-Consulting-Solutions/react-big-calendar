@@ -19,7 +19,7 @@ export const GroupingCalendarDayView = ({
             index === 0
               ? 'rbc-label-container-grouping-column-week-first-facility'
               : ''
-          } rbc-label-container-grouping-column-week`}
+          } rbc-label-container-grouping-column-day`}
         >
           <div className="rbc-label-grouping-column">
             <span>{resource.title}</span>

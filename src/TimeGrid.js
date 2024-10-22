@@ -243,7 +243,11 @@ export default class TimeGrid extends Component {
       <div
         className={clsx(
           'rbc-time-view',
-          resources && 'rbc-time-view-resources'
+          resources && 'rbc-time-view-resources',
+          this.props.isDayGrouping && 'rbc-time-view-day',
+          this.props.isDayGrouping &&
+            this.props.isDayGroupingFirst &&
+            'rbc-time-view-day-first'
         )}
         ref={this.containerRef}
       >
@@ -488,6 +492,7 @@ TimeGrid.propTypes = {
   hideHeader: PropTypes.bool,
   isDayGrouping: PropTypes.bool,
   hideTimeSlots: PropTypes.bool,
+  isDayGroupingFirst: PropTypes.bool,
 }
 
 TimeGrid.defaultProps = {

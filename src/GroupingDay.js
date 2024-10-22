@@ -35,6 +35,7 @@ class GroupingDay extends React.Component {
         scrollToTime={scrollToTime}
         enableAutoScroll={enableAutoScroll}
         isDayGrouping
+        isDayGroupingFirst={!this.props.hideHeader}
         hideTimeSlots={this.props.hideHeader}
       />
     )

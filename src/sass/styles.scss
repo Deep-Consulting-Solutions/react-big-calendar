@@ -119,14 +119,11 @@
 }
 
 .rbc-header-label-grouping-column-day {
-  min-height: 42px;
+  min-height: 41px;
   border-bottom: 1px solid $cell-border;
 }
 
-.rbc-header-label-grouping-column-day {
-  min-height: 43px;
-  border-bottom: 2px solid $cell-border;
-}
+
 
 .rbc-label-container-grouping-column {
   flex: 1;
@@ -140,6 +137,11 @@
 
 .rbc-label-container-grouping-column-week {
   border-bottom: 2px solid $cell-border;
+  position: relative;
+}
+
+.rbc-label-container-grouping-column-day {
+  border-bottom: 1px solid $cell-border;
   position: relative;
 }
 

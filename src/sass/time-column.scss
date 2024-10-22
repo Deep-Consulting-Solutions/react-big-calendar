@@ -53,6 +53,10 @@
     }
   }
 
+  .rbc-events-container-day {
+    border-left:0px !important;
+  }
+
   .rbc-event {
     border: 1px solid $event-border;
     display: flex;

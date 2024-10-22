@@ -160,7 +160,13 @@ class DayColumn extends React.Component {
           components={components}
           slotMetrics={slotMetrics}
         >
-          <div className={clsx('rbc-events-container', rtl && 'rtl')}>
+          <div
+            className={clsx(
+              'rbc-events-container',
+              rtl && 'rtl',
+              this.props.isDayGrouping && 'rbc-events-container-day'
+            )}
+          >
             {this.renderEvents({
               events: this.props.backgroundEvents,
               isBackgroundEvent: true,
