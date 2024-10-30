@@ -578,6 +578,13 @@ declare module '@deep-consulting-solutions/react-big-calendar' {
     elementProps?: React.HTMLAttributes<HTMLElement> | undefined
     style?: React.CSSProperties | undefined
     onShowMore?: ((events: TEvent[], date: Date) => void) | undefined
+    grouping?: {
+      title: string
+      resources: {
+        id: string
+        title: string
+      }[]
+    }
   }
 
   export interface TitleOptions {
