@@ -51,4 +51,17 @@ Grouping.args = {
   events: resourceEvents,
   localizer: mLocalizer,
   grouping,
+  onSelectSlot: (...args) => {
+    console.log(...args)
+  },
+  onSelectEvent: (...args) => {
+    console.log(...args)
+  },
+  onDoubleClickEvent: (...args) => {
+    console.log(...args)
+  },
+  onKeyPressEvent: (...args) => {
+    console.log(...args)
+  },
+  selectable: true,
 }
