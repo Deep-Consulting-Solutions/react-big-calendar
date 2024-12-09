@@ -20,13 +20,68 @@ function getPosition({ target, offset, container, box }) {
     height: cHeight,
   } = getOffset(container)
   const { width: bWidth, height: bHeight } = getOffset(box)
-  const viewBottom = cTop + cHeight
-  const viewRight = cLeft + cWidth
-  const bottom = top + bHeight
-  const right = left + bWidth
+  const viewportHeight = window.innerHeight
+  const viewportWidth = window.innerWidth
+
   const { x, y } = offset
-  const topOffset = bottom > viewBottom ? top - bHeight - y : top + y + height
-  const leftOffset = right > viewRight ? left + x - bWidth + width : left + x
+
+  // Minimum gap between popup and triggering element
+  const GAP = 2
+
+  // Calculate potential top and bottom positions
+  const topPosition = top - bHeight - y - GAP
+  const bottomPosition = top + height + y + GAP
+
+  // Determine final topOffset
+  let topOffset =
+    bottomPosition + bHeight <= viewportHeight
+      ? bottomPosition
+      : topPosition >= 0
+      ? topPosition
+      : Math.max(bottomPosition, 0) // Ensure it's at least visible
+
+  // Constrain to container's vertical boundaries
+  const containerBottom = cTop + cHeight
+  if (topOffset + bHeight > containerBottom) {
+    topOffset = containerBottom - bHeight
+  } else if (topOffset < cTop) {
+    topOffset = cTop
+  }
+
+  // Calculate potential left and right positions
+  const leftPosition = left + x
+  const rightPosition = left + x - bWidth + width
+
+  // Determine final leftOffset
+  let leftOffset =
+    leftPosition + bWidth <= viewportWidth
+      ? leftPosition
+      : rightPosition >= 0
+      ? rightPosition
+      : Math.max(leftPosition, 0) // Ensure it's at least visible
+
+  // Constrain to container's horizontal boundaries
+  const containerRight = cLeft + cWidth
+  if (leftOffset + bWidth > containerRight) {
+    leftOffset = containerRight - bWidth
+  } else if (leftOffset < cLeft) {
+    leftOffset = cLeft
+  }
+
+  // Ensure the popup doesn't cover the target when constrained
+  if (
+    topOffset < top + height + GAP &&
+    topOffset + bHeight > top - GAP &&
+    leftOffset < left + width &&
+    leftOffset + bWidth > left
+  ) {
+    // If overlapping, shift popup slightly to avoid covering the target
+    if (topPosition >= 0) {
+      topOffset = topPosition
+    } else {
+      topOffset = bottomPosition
+    }
+  }
 
   return {
     topOffset,
