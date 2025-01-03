@@ -18,8 +18,8 @@ export default {
       id: 3,
       title: 'C',
       resourceId: 'facility5',
-      start: new Date(2015, 3, 4, 5, 30, 0, 0),
-      end: new Date(2015, 3, 4, 10, 30, 0, 0),
+      start: new Date(2015, 3, 2, 5, 30, 0, 0),
+      end: new Date(2015, 3, 2, 10, 30, 0, 0),
     },
     {
       id: 4,
