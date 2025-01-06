@@ -22,7 +22,15 @@ export const GroupingCalendarWeekView = ({
           } rbc-label-container-grouping-column-week`}
         >
           <div className="rbc-label-grouping-column">
-            <span>{resource.title}</span>
+            <span
+              style={{
+                display: 'block',
+                width: '100%',
+                textWrap: 'wrap',
+              }}
+            >
+              {resource.title}
+            </span>
           </div>
         </div>
       </div>

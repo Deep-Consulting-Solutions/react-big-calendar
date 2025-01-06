@@ -254,7 +254,7 @@ export default class TimeGrid extends Component {
         {this.props.isDayGrouping ? null : (
           <TimeGridHeader
             range={range}
-            events={this.props.isWeekGrouping ? events : allDayEvents}
+            events={this.props.isWeekGrouping ? rangeEvents : allDayEvents}
             width={width}
             rtl={rtl}
             getNow={getNow}

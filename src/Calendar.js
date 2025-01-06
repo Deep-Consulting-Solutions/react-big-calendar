@@ -1127,6 +1127,18 @@ class Calendar extends React.Component {
                     (event) => event.resourceId === resource.id
                   )}
                   hideHeader={index !== 0}
+                  onSelectEvent={(...args) =>
+                    this.handleSelectEvent(...args, { group: resource })
+                  }
+                  onDoubleClickEvent={(...args) =>
+                    this.handleDoubleClickEvent(...args, { group: resource })
+                  }
+                  onKeyPressEvent={(...args) =>
+                    this.handleKeyPressEvent(...args, { group: resource })
+                  }
+                  onSelectSlot={(slotInfo) =>
+                    this.handleSelectSlot({ ...slotInfo, group: resource })
+                  }
                 />
               </GroupingView>
             ))
