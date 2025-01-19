@@ -616,6 +616,12 @@ class Calendar extends React.Component {
     allDayMaxRows: PropTypes.number,
 
     /**
+     * Determines a maximum amount of rows of events to display in month view.
+     * The rest of the events will be hidden behind +{count} more.
+     */
+    maxRows: PropTypes.number,
+
+    /**
      * Constrains the minimum _time_ of the Day and Week views.
      */
     min: PropTypes.instanceOf(Date),
@@ -927,6 +933,8 @@ class Calendar extends React.Component {
 
     this.state = {
       context: Calendar.getContext(this.props),
+      overlay: null,
+      resourceTriggeringPopup: null,
     }
   }
   static getDerivedStateFromProps(nextProps) {
@@ -1014,6 +1022,17 @@ class Calendar extends React.Component {
     return VIEWS
   }
 
+  openPopup = ({ date, events, position, target, resourceId }) => {
+    this.setState({
+      overlay: { date, events, position, target },
+      resourceTriggeringPopup: resourceId,
+    })
+  }
+
+  closePopup = () => {
+    this.setState({ overlay: null, resourceTriggeringPopup: null })
+  }
+
   getView = () => {
     const views = this.getViews()
 
@@ -1092,7 +1111,12 @@ class Calendar extends React.Component {
       onDoubleClickEvent: this.handleDoubleClickEvent,
       onKeyPressEvent: this.handleKeyPressEvent,
       onSelectSlot: this.handleSelectSlot,
+      openPopup: this.openPopup,
+      closePopup: this.closePopup,
+      overlay: this.state.overlay ?? {},
+      isPopupOpen: !!this.state.overlay,
       onShowMore: onShowMore,
+      resourceTriggeringPopup: this.state.resourceTriggeringPopup,
       doShowMoreDrillDown: doShowMoreDrillDown,
     }
 
@@ -1126,6 +1150,8 @@ class Calendar extends React.Component {
                   events={events.filter(
                     (event) => event.resourceId === resource.id
                   )}
+                  resourceId={resource.id}
+                  isGrouped={true}
                   hideHeader={index !== 0}
                   onSelectEvent={(...args) =>
                     this.handleSelectEvent(...args, { group: resource })
@@ -1144,7 +1170,9 @@ class Calendar extends React.Component {
             ))
           : null}
 
-        {!grouping?.resources ? <View {...viewProps} /> : null}
+        {!grouping?.resources ? (
+          <View {...viewProps} isGrouped={false} />
+        ) : null}
       </div>
     )
   }

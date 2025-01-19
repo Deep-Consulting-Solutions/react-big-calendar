@@ -25,10 +25,25 @@ class BackgroundCells extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (!prevProps.selectable && this.props.selectable) this._selectable()
+    const { selectable, isPopupOpen } = this.props
 
-    if (prevProps.selectable && !this.props.selectable)
+    // Initialize or teardown selectable based on `selectable` and `isPopupOpen` values
+    if (!prevProps.selectable && selectable && !isPopupOpen) {
+      this._selectable()
+    }
+
+    if (prevProps.selectable && !selectable) {
       this._teardownSelectable()
+    }
+
+    if (prevProps.isPopupOpen && !isPopupOpen && selectable) {
+      this._selectable()
+    }
+
+    // If the popup state has changed and it becomes open, teardown selectable
+    if (!prevProps.isPopupOpen && isPopupOpen && selectable) {
+      this._teardownSelectable()
+    }
   }
 
   render() {
@@ -185,6 +200,7 @@ BackgroundCells.propTypes = {
   rtl: PropTypes.bool,
   type: PropTypes.string,
   resourceId: PropTypes.any,
+  isPopupOpen: PropTypes.bool,
 
   localizer: PropTypes.any,
 }

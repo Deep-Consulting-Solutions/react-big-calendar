@@ -76,7 +76,15 @@ class MonthView extends React.Component {
   }
 
   render() {
-    let { date, localizer, className, hideHeader } = this.props,
+    let {
+        date,
+        localizer,
+        className,
+        hideHeader,
+        isGrouped,
+        resourceId,
+        resourceTriggeringPopup,
+      } = this.props,
       month = localizer.visibleDays(date, localizer),
       weeks = chunk(month, 7)
 
@@ -95,7 +103,11 @@ class MonthView extends React.Component {
           </div>
         )}
         {weeks.map(this.renderWeek)}
-        {this.props.popup && this.renderOverlay()}
+        {!isGrouped && this.props.popup && this.renderOverlay()}
+        {isGrouped &&
+          this.props.popup &&
+          resourceId === resourceTriggeringPopup &&
+          this.renderOverlay()}
       </div>
     )
   }
@@ -113,6 +125,8 @@ class MonthView extends React.Component {
       accessors,
       getters,
       showAllEvents,
+      maxRows,
+      isPopupOpen,
     } = this.props
 
     const { needLimitMeasure, rowLimit } = this.state
@@ -138,7 +152,7 @@ class MonthView extends React.Component {
         date={date}
         range={week}
         events={sorted}
-        maxRows={showAllEvents ? Infinity : rowLimit}
+        maxRows={showAllEvents ? Infinity : maxRows || rowLimit}
         selected={selected}
         selectable={selectable}
         components={components}
@@ -156,6 +170,7 @@ class MonthView extends React.Component {
         rtl={this.props.rtl}
         resizable={this.props.resizable}
         showAllEvents={showAllEvents}
+        isPopupOpen={isPopupOpen}
       />
     )
   }
@@ -207,7 +222,6 @@ class MonthView extends React.Component {
   }
 
   renderOverlay() {
-    let overlay = this.state?.overlay ?? {}
     let {
       accessors,
       localizer,
@@ -216,9 +230,9 @@ class MonthView extends React.Component {
       selected,
       popupOffset,
       handleDragStart,
+      overlay,
+      closePopup,
     } = this.props
-
-    const onHide = () => this.setState({ overlay: null })
 
     return (
       <PopOverlay
@@ -236,7 +250,7 @@ class MonthView extends React.Component {
         handleDragStart={handleDragStart}
         show={!!overlay.position}
         overlayDisplay={this.overlayDisplay}
-        onHide={onHide}
+        onHide={closePopup}
       />
     )
 
@@ -314,6 +328,8 @@ class MonthView extends React.Component {
       onShowMore,
       getDrilldownView,
       doShowMoreDrillDown,
+      openPopup,
+      resourceId,
     } = this.props
     //cancel any pending selections so only the event click goes through.
     this.clearSelection()
@@ -321,9 +337,7 @@ class MonthView extends React.Component {
     if (popup) {
       let position = getPosition(cell, this.containerRef.current)
 
-      this.setState({
-        overlay: { date, events, position, target },
-      })
+      openPopup({ date, events, position, target, resourceId })
     } else if (doShowMoreDrillDown) {
       notify(onDrillDown, [date, getDrilldownView(date) || views.DAY])
     }
@@ -332,9 +346,7 @@ class MonthView extends React.Component {
   }
 
   overlayDisplay = () => {
-    this.setState({
-      overlay: null,
-    })
+    this.props.closePopup()
   }
 
   selectDates(slotInfo) {
@@ -374,6 +386,10 @@ MonthView.propTypes = {
   step: PropTypes.number,
   getNow: PropTypes.func.isRequired,
 
+  maxRows: PropTypes.number,
+  isPopupOpen: PropTypes.bool,
+  overlay: PropTypes.object,
+
   scrollToTime: PropTypes.instanceOf(Date),
   enableAutoScroll: PropTypes.bool,
   rtl: PropTypes.bool,
@@ -399,6 +415,8 @@ MonthView.propTypes = {
   doShowMoreDrillDown: PropTypes.bool,
   onDrillDown: PropTypes.func,
   getDrilldownView: PropTypes.func.isRequired,
+  closePopup: PropTypes.func,
+  openPopup: PropTypes.func,
 
   popup: PropTypes.bool,
   handleDragStart: PropTypes.func,

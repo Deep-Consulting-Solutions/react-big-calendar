@@ -123,6 +123,7 @@ class DateContentRow extends React.Component {
       isAllDay,
       resizable,
       showAllEvents,
+      isPopupOpen,
     } = this.props
 
     if (renderForMeasure) return this.renderDummy()
@@ -166,6 +167,7 @@ class DateContentRow extends React.Component {
           components={components}
           longPressThreshold={longPressThreshold}
           resourceId={resourceId}
+          isPopupOpen={isPopupOpen}
         />
 
         <div
@@ -232,6 +234,7 @@ DateContentRow.propTypes = {
 
   getNow: PropTypes.func.isRequired,
   isAllDay: PropTypes.bool,
+  isPopupOpen: PropTypes.bool,
 
   accessors: PropTypes.object.isRequired,
   components: PropTypes.object.isRequired,
