@@ -124,6 +124,7 @@ class DateContentRow extends React.Component {
       resizable,
       showAllEvents,
       isPopupOpen,
+      loading,
     } = this.props
 
     if (renderForMeasure) return this.renderDummy()
@@ -195,6 +196,7 @@ class DateContentRow extends React.Component {
                 <EventEndingRow
                   segments={extra}
                   onShowMore={this.handleShowMore}
+                  loading={loading}
                   {...eventRowProps}
                 />
               )}
@@ -235,6 +237,7 @@ DateContentRow.propTypes = {
   getNow: PropTypes.func.isRequired,
   isAllDay: PropTypes.bool,
   isPopupOpen: PropTypes.bool,
+  loading: PropTypes.bool,
 
   accessors: PropTypes.object.isRequired,
   components: PropTypes.object.isRequired,

@@ -400,6 +400,15 @@ class Calendar extends React.Component {
     onShowMore: PropTypes.func,
 
     /**
+     * Callback fired when a +{count} more is clicked to fetch all events for a date
+     *
+     * ```js
+     * async (date: Date) => event
+     * ```
+     */
+    getMoreEvents: PropTypes.func,
+
+    /**
      * Displays all events on the month view instead of
      * having some hidden behind +{count} more. This will
      * cause the rows in the month view to be scrollable if
@@ -935,6 +944,7 @@ class Calendar extends React.Component {
       context: Calendar.getContext(this.props),
       overlay: null,
       resourceTriggeringPopup: null,
+      isFetchingMoreEvents: false,
     }
   }
   static getDerivedStateFromProps(nextProps) {
@@ -1033,6 +1043,10 @@ class Calendar extends React.Component {
     this.setState({ overlay: null, resourceTriggeringPopup: null })
   }
 
+  setFetchingMoreEvents = (isFetchingMoreEvents) => {
+    this.setState({ isFetchingMoreEvents })
+  }
+
   getView = () => {
     const views = this.getViews()
 
@@ -1066,6 +1080,7 @@ class Calendar extends React.Component {
       length,
       showMultiDayTimes,
       onShowMore,
+      getMoreEvents,
       doShowMoreDrillDown,
       components: _0,
       formats: _1,
@@ -1113,9 +1128,12 @@ class Calendar extends React.Component {
       onSelectSlot: this.handleSelectSlot,
       openPopup: this.openPopup,
       closePopup: this.closePopup,
+      setFetchingMoreEvents: this.setFetchingMoreEvents,
+      isFetchingMoreEvents: this.state.isFetchingMoreEvents,
       overlay: this.state.overlay ?? {},
       isPopupOpen: !!this.state.overlay,
       onShowMore: onShowMore,
+      getMoreEvents,
       resourceTriggeringPopup: this.state.resourceTriggeringPopup,
       doShowMoreDrillDown: doShowMoreDrillDown,
     }

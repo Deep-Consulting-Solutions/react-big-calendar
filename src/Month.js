@@ -127,6 +127,7 @@ class MonthView extends React.Component {
       showAllEvents,
       maxRows,
       isPopupOpen,
+      isFetchingMoreEvents,
     } = this.props
 
     const { needLimitMeasure, rowLimit } = this.state
@@ -171,6 +172,7 @@ class MonthView extends React.Component {
         resizable={this.props.resizable}
         showAllEvents={showAllEvents}
         isPopupOpen={isPopupOpen}
+        loading={isFetchingMoreEvents}
       />
     )
   }
@@ -321,7 +323,7 @@ class MonthView extends React.Component {
     notify(this.props.onKeyPressEvent, args)
   }
 
-  handleShowMore = (events, date, cell, slot, target) => {
+  handleShowMore = async (evts, date, cell, slot, target) => {
     const {
       popup,
       onDrillDown,
@@ -330,9 +332,27 @@ class MonthView extends React.Component {
       doShowMoreDrillDown,
       openPopup,
       resourceId,
+      getMoreEvents,
+      setFetchingMoreEvents,
     } = this.props
     //cancel any pending selections so only the event click goes through.
     this.clearSelection()
+
+    let events
+
+    try {
+      if (getMoreEvents) {
+        setFetchingMoreEvents(true)
+        events = await getMoreEvents(date)
+      } else {
+        events = evts
+      }
+    } catch (error) {
+      console.error('Error fetching more events:', error)
+      events = evts
+    } finally {
+      setFetchingMoreEvents(false)
+    }
 
     if (popup) {
       let position = getPosition(cell, this.containerRef.current)
