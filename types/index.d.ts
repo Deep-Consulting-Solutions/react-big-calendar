@@ -123,6 +123,14 @@ declare module '@deep-consulting-solutions/react-big-calendar' {
   ) => string
   export type DateFormat = string | DateFormatFunction
 
+  export interface Grouping {
+    title: string
+    resources: {
+      id: string
+      title: string
+    }[]
+  }
+
   export interface Formats {
     /**
      * Format for the day of the month heading in the Month view.
@@ -358,6 +366,7 @@ declare module '@deep-consulting-solutions/react-big-calendar' {
     end: Date
     slots: Date[]
     action: 'select' | 'click' | 'doubleClick'
+    group?: Grouping
     /** For "TimeGrid" views */
     resourceId?: number | string | undefined
     /** For "select" action */
@@ -541,6 +550,7 @@ declare module '@deep-consulting-solutions/react-big-calendar' {
     dayPropGetter?: DayPropGetter | undefined
     showMultiDayTimes?: boolean | undefined
     allDayMaxRows?: number | undefined
+    maxRows?: number | undefined
     min?: Date | undefined
     max?: Date | undefined
     scrollToTime?: Date | undefined
@@ -578,13 +588,8 @@ declare module '@deep-consulting-solutions/react-big-calendar' {
     elementProps?: React.HTMLAttributes<HTMLElement> | undefined
     style?: React.CSSProperties | undefined
     onShowMore?: ((events: TEvent[], date: Date) => void) | undefined
-    grouping?: {
-      title: string
-      resources: {
-        id: string
-        title: string
-      }[]
-    }
+    getMoreEvents?: ((date: Date) => TEvent[]) | undefined
+    grouping?: Grouping
   }
 
   export interface TitleOptions {

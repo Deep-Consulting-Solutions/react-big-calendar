@@ -72,6 +72,9 @@ class TimeGridHeader extends React.Component {
       accessors,
       components,
       resizable,
+      maxRows,
+      loading,
+      isPopupOpen,
     } = this.props
 
     const resourceId = accessors.resourceId(resource)
@@ -86,7 +89,7 @@ class TimeGridHeader extends React.Component {
         getNow={getNow}
         minRows={2}
         // Add +1 to include showMore button row in the row limit
-        maxRows={this.props.allDayMaxRows + 1}
+        maxRows={maxRows || this.props.allDayMaxRows + 1}
         range={range}
         events={eventsToDisplay}
         resourceId={resourceId}
@@ -104,6 +107,8 @@ class TimeGridHeader extends React.Component {
         onSelectSlot={this.props.onSelectSlot}
         longPressThreshold={this.props.longPressThreshold}
         resizable={resizable}
+        loading={loading}
+        isPopupOpen={isPopupOpen}
       />
     )
   }
@@ -123,11 +128,14 @@ class TimeGridHeader extends React.Component {
       scrollRef,
       localizer,
       isOverflowing,
+      maxRows,
+      loading,
       components: {
         timeGutterHeader: TimeGutterHeader,
         resourceHeader: ResourceHeaderComponent = ResourceHeader,
       },
       resizable,
+      isPopupOpen,
     } = this.props
 
     let style = {}
@@ -180,7 +188,7 @@ class TimeGridHeader extends React.Component {
               getNow={getNow}
               minRows={2}
               // Add +1 to include showMore button row in the row limit
-              maxRows={this.props.allDayMaxRows + 1}
+              maxRows={maxRows || this.props.allDayMaxRows + 1}
               range={range}
               events={groupedEvents.get(id) || []}
               resourceId={resource && id}
@@ -198,6 +206,8 @@ class TimeGridHeader extends React.Component {
               onSelectSlot={this.props.onSelectSlot}
               longPressThreshold={this.props.longPressThreshold}
               resizable={resizable}
+              loading={loading}
+              isPopupOpen={isPopupOpen}
             />
           </div>
         ))}
@@ -227,6 +237,9 @@ TimeGridHeader.propTypes = {
   longPressThreshold: PropTypes.number,
 
   allDayMaxRows: PropTypes.number,
+  maxRows: PropTypes.number,
+  isPopupOpen: PropTypes.bool,
+  loading: PropTypes.bool,
 
   onSelectSlot: PropTypes.func,
   onSelectEvent: PropTypes.func,

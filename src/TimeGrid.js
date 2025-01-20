@@ -87,27 +87,40 @@ export default class TimeGrid extends Component {
     notify(this.props.onDoubleClickEvent, args)
   }
 
-  handleShowMore = (events, date, cell, slot, target) => {
+  handleShowMore = async (evts, date, cell, slot, target) => {
     const {
       popup,
       onDrillDown,
       onShowMore,
       getDrilldownView,
       doShowMoreDrillDown,
+      openPopup,
+      resourceId,
+      getMoreEvents,
+      setFetchingMoreEvents,
     } = this.props
     this.clearSelection()
+
+    let events
+
+    try {
+      if (getMoreEvents) {
+        setFetchingMoreEvents(true)
+        events = await getMoreEvents(date)
+      } else {
+        events = evts
+      }
+    } catch (error) {
+      console.error('Error fetching more events:', error)
+      events = evts
+    } finally {
+      setFetchingMoreEvents(false)
+    }
 
     if (popup) {
       let position = getPosition(cell, this.containerRef.current)
 
-      this.setState({
-        overlay: {
-          date,
-          events,
-          position: { ...position, width: '200px' },
-          target,
-        },
-      })
+      openPopup({ date, events, position, target, resourceId })
     } else if (doShowMoreDrillDown) {
       notify(onDrillDown, [date, getDrilldownView(date) || views.DAY])
     }
@@ -201,6 +214,12 @@ export default class TimeGrid extends Component {
       showMultiDayTimes,
       longPressThreshold,
       resizable,
+      maxRows,
+      isGrouped,
+      resourceId,
+      resourceTriggeringPopup,
+      isFetchingMoreEvents,
+      isPopupOpen,
     } = this.props
 
     width = width || this.state.gutterWidth
@@ -265,6 +284,7 @@ export default class TimeGrid extends Component {
                 ? Infinity
                 : this.props.allDayMaxRows ?? Infinity
             }
+            maxRows={maxRows}
             resources={this.memoizedResources(resources, accessors)}
             selectable={this.props.selectable}
             accessors={accessors}
@@ -283,9 +303,15 @@ export default class TimeGrid extends Component {
             resizable={resizable}
             hideHeader={this.props.hideHeader}
             hideGutter={this.props.isWeekGrouping}
+            loading={isFetchingMoreEvents}
+            isPopupOpen={isPopupOpen}
           />
         )}
-        {this.props.popup && this.renderOverlay()}
+        {!isGrouped && this.props.popup && this.renderOverlay()}
+        {isGrouped &&
+          this.props.popup &&
+          resourceId === resourceTriggeringPopup &&
+          this.renderOverlay()}
         <div
           ref={this.contentRef}
           className={`rbc-time-content ${
@@ -325,8 +351,9 @@ export default class TimeGrid extends Component {
   }
 
   renderOverlay() {
-    let overlay = this.state?.overlay ?? {}
     let {
+      overlay,
+      closePopup,
       accessors,
       localizer,
       components,
@@ -335,8 +362,6 @@ export default class TimeGrid extends Component {
       popupOffset,
       handleDragStart,
     } = this.props
-
-    const onHide = () => this.setState({ overlay: null })
 
     return (
       <PopOverlay
@@ -354,15 +379,13 @@ export default class TimeGrid extends Component {
         handleDragStart={handleDragStart}
         show={!!overlay.position}
         overlayDisplay={this.overlayDisplay}
-        onHide={onHide}
+        onHide={closePopup}
       />
     )
   }
 
   overlayDisplay = () => {
-    this.setState({
-      overlay: null,
-    })
+    this.props.closePopup()
   }
 
   clearSelection() {
@@ -457,6 +480,13 @@ TimeGrid.propTypes = {
   localizer: PropTypes.object.isRequired,
 
   allDayMaxRows: PropTypes.number,
+  maxRows: PropTypes.number,
+  isPopupOpen: PropTypes.bool,
+
+  isGrouped: PropTypes.bool,
+  resourceId: PropTypes.string,
+  resourceTriggeringPopup: PropTypes.string,
+  isFetchingMoreEvents: PropTypes.bool,
 
   selected: PropTypes.object,
   selectable: PropTypes.oneOf([true, false, 'ignoreEvents']),

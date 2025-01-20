@@ -400,6 +400,15 @@ class Calendar extends React.Component {
     onShowMore: PropTypes.func,
 
     /**
+     * Callback fired when a +{count} more is clicked to fetch all events for a date
+     *
+     * ```js
+     * async (date: Date) => TEvent[]
+     * ```
+     */
+    getMoreEvents: PropTypes.func,
+
+    /**
      * Displays all events on the month view instead of
      * having some hidden behind +{count} more. This will
      * cause the rows in the month view to be scrollable if
@@ -614,6 +623,12 @@ class Calendar extends React.Component {
      * Defaults to `Infinity`
      */
     allDayMaxRows: PropTypes.number,
+
+    /**
+     * Determines a maximum amount of rows of events to display in month view.
+     * The rest of the events will be hidden behind +{count} more.
+     */
+    maxRows: PropTypes.number,
 
     /**
      * Constrains the minimum _time_ of the Day and Week views.
@@ -927,6 +942,9 @@ class Calendar extends React.Component {
 
     this.state = {
       context: Calendar.getContext(this.props),
+      overlay: null,
+      resourceTriggeringPopup: null,
+      isFetchingMoreEvents: false,
     }
   }
   static getDerivedStateFromProps(nextProps) {
@@ -1014,6 +1032,21 @@ class Calendar extends React.Component {
     return VIEWS
   }
 
+  openPopup = ({ date, events, position, target, resourceId }) => {
+    this.setState({
+      overlay: { date, events, position, target },
+      resourceTriggeringPopup: resourceId,
+    })
+  }
+
+  closePopup = () => {
+    this.setState({ overlay: null, resourceTriggeringPopup: null })
+  }
+
+  setFetchingMoreEvents = (isFetchingMoreEvents) => {
+    this.setState({ isFetchingMoreEvents })
+  }
+
   getView = () => {
     const views = this.getViews()
 
@@ -1047,6 +1080,7 @@ class Calendar extends React.Component {
       length,
       showMultiDayTimes,
       onShowMore,
+      getMoreEvents,
       doShowMoreDrillDown,
       components: _0,
       formats: _1,
@@ -1092,7 +1126,15 @@ class Calendar extends React.Component {
       onDoubleClickEvent: this.handleDoubleClickEvent,
       onKeyPressEvent: this.handleKeyPressEvent,
       onSelectSlot: this.handleSelectSlot,
+      openPopup: this.openPopup,
+      closePopup: this.closePopup,
+      setFetchingMoreEvents: this.setFetchingMoreEvents,
+      isFetchingMoreEvents: this.state.isFetchingMoreEvents,
+      overlay: this.state.overlay ?? {},
+      isPopupOpen: !!this.state.overlay,
       onShowMore: onShowMore,
+      getMoreEvents,
+      resourceTriggeringPopup: this.state.resourceTriggeringPopup,
       doShowMoreDrillDown: doShowMoreDrillDown,
     }
 
@@ -1126,6 +1168,8 @@ class Calendar extends React.Component {
                   events={events.filter(
                     (event) => event.resourceId === resource.id
                   )}
+                  resourceId={resource.id}
+                  isGrouped={true}
                   hideHeader={index !== 0}
                   onSelectEvent={(...args) =>
                     this.handleSelectEvent(...args, { group: resource })
@@ -1144,7 +1188,9 @@ class Calendar extends React.Component {
             ))
           : null}
 
-        {!grouping?.resources ? <View {...viewProps} /> : null}
+        {!grouping?.resources ? (
+          <View {...viewProps} isGrouped={false} />
+        ) : null}
       </div>
     )
   }

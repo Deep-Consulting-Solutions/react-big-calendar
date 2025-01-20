@@ -75,7 +75,7 @@ class EventEndingRow extends React.Component {
   }
 
   renderShowMore(segments, slot) {
-    let { localizer, slotMetrics, components } = this.props
+    let { localizer, slotMetrics, components, loading } = this.props
     const events = slotMetrics.getEventsForSlot(slot)
     const remainingEvents = eventsInSlot(segments, slot)
     const count = remainingEvents.length
@@ -106,7 +106,9 @@ class EventEndingRow extends React.Component {
         className={clsx('rbc-button-link', 'rbc-show-more')}
         onClick={(e) => this.showMore(slot, e)}
       >
-        {localizer.messages.showMore(count, remainingEvents, events)}
+        {loading
+          ? 'Loading...'
+          : localizer.messages.showMore(count, remainingEvents, events)}
       </button>
     ) : (
       false
@@ -123,6 +125,7 @@ class EventEndingRow extends React.Component {
 EventEndingRow.propTypes = {
   segments: PropTypes.array,
   slots: PropTypes.number,
+  loading: PropTypes.bool,
   onShowMore: PropTypes.func,
   ...EventRowMixin.propTypes,
 }
