@@ -67,6 +67,7 @@ Week.propTypes = {
   localizer: PropTypes.object.isRequired,
 
   allDayMaxRows: PropTypes.number,
+  isPopupOpen: PropTypes.bool,
 
   selected: PropTypes.object,
   selectable: PropTypes.oneOf([true, false, 'ignoreEvents']),
