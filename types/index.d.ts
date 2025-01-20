@@ -588,7 +588,7 @@ declare module '@deep-consulting-solutions/react-big-calendar' {
     elementProps?: React.HTMLAttributes<HTMLElement> | undefined
     style?: React.CSSProperties | undefined
     onShowMore?: ((events: TEvent[], date: Date) => void) | undefined
-    getMoreEvents?: ((date: Date) => TEvent[]) | undefined
+    getMoreEvents?: ((date: Date) => Promise<TEvent[]>) | undefined
     grouping?: Grouping
   }
 
