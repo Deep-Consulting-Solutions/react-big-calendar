@@ -105,7 +105,10 @@ export default class TimeGrid extends Component {
 
     try {
       if (getMoreEvents) {
-        setFetchingMoreEvents(true)
+        setFetchingMoreEvents({
+          isFetchingMoreEvents: true,
+          dateTriggeringShowMore: date,
+        })
         events = await getMoreEvents(date)
       } else {
         events = evts
@@ -114,7 +117,10 @@ export default class TimeGrid extends Component {
       console.error('Error fetching more events:', error)
       events = evts
     } finally {
-      setFetchingMoreEvents(false)
+      setFetchingMoreEvents({
+        isFetchingMoreEvents: true,
+        dateTriggeringShowMore: null,
+      })
     }
 
     if (popup) {
@@ -219,6 +225,7 @@ export default class TimeGrid extends Component {
       resourceId,
       resourceTriggeringPopup,
       isFetchingMoreEvents,
+      dateTriggeringShowMore,
       isPopupOpen,
     } = this.props
 
@@ -303,8 +310,10 @@ export default class TimeGrid extends Component {
             resizable={resizable}
             hideHeader={this.props.hideHeader}
             hideGutter={this.props.isWeekGrouping}
-            loading={isFetchingMoreEvents}
+            loadingMore={isFetchingMoreEvents}
+            dateTriggeringShowMore={dateTriggeringShowMore}
             isPopupOpen={isPopupOpen}
+            isGrouped={isGrouped}
           />
         )}
         {!isGrouped && this.props.popup && this.renderOverlay()}
@@ -314,9 +323,11 @@ export default class TimeGrid extends Component {
           this.renderOverlay()}
         <div
           ref={this.contentRef}
-          className={`rbc-time-content ${
-            this.props.isDayGrouping ? 'rbc-time-content-day-grouping' : ''
-          }`}
+          className={clsx(
+            'rbc-time-content',
+            this.props.isDayGrouping && 'rbc-time-content-day-grouping',
+            isGrouped && 'rbc-time-content-alt'
+          )}
           onScroll={this.handleScroll}
         >
           {this.props.isWeekGrouping ? null : (

@@ -945,6 +945,7 @@ class Calendar extends React.Component {
       overlay: null,
       resourceTriggeringPopup: null,
       isFetchingMoreEvents: false,
+      dateTriggeringShowMore: null,
     }
   }
   static getDerivedStateFromProps(nextProps) {
@@ -1043,8 +1044,11 @@ class Calendar extends React.Component {
     this.setState({ overlay: null, resourceTriggeringPopup: null })
   }
 
-  setFetchingMoreEvents = (isFetchingMoreEvents) => {
-    this.setState({ isFetchingMoreEvents })
+  setFetchingMoreEvents = ({
+    isFetchingMoreEvents,
+    dateTriggeringShowMore,
+  }) => {
+    this.setState({ isFetchingMoreEvents, dateTriggeringShowMore })
   }
 
   getView = () => {
@@ -1130,6 +1134,7 @@ class Calendar extends React.Component {
       closePopup: this.closePopup,
       setFetchingMoreEvents: this.setFetchingMoreEvents,
       isFetchingMoreEvents: this.state.isFetchingMoreEvents,
+      dateTriggeringShowMore: this.state.dateTriggeringShowMore,
       overlay: this.state.overlay ?? {},
       isPopupOpen: !!this.state.overlay,
       onShowMore: onShowMore,

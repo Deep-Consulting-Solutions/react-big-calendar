@@ -10,11 +10,10 @@
   }
 }
 
-.rbc-time-row{
+.rbc-time-row {
   flex-direction: row;
   min-height: auto;
 }
-
 
 .rbc-timeslot-group {
   border-bottom: 1px solid $cell-border;
@@ -54,20 +53,20 @@
   }
 
   .rbc-events-container-day {
-    border-left:0px !important;
+    border-left: 0px !important;
   }
 
   .rbc-event {
     border: 1px solid $event-border;
     display: flex;
     max-height: 100%;
-    min-height: 20px;
+    min-height: 28px;
     flex-flow: column wrap;
     align-items: flex-start;
     overflow: hidden;
     position: absolute;
   }
-  
+
   .rbc-background-event {
     @extend .rbc-event;
     opacity: 0.75;
@@ -126,7 +125,7 @@
   .rbc-day-bg {
     width: 140px;
     // min-width: 0;
-    flex:  1 1 0;
+    flex: 1 1 0;
     flex-basis: 0 px;
   }
 }

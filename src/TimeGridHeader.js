@@ -73,8 +73,10 @@ class TimeGridHeader extends React.Component {
       components,
       resizable,
       maxRows,
-      loading,
+      loadingMore,
+      dateTriggeringShowMore,
       isPopupOpen,
+      isGrouped,
     } = this.props
 
     const resourceId = accessors.resourceId(resource)
@@ -93,7 +95,7 @@ class TimeGridHeader extends React.Component {
         range={range}
         events={eventsToDisplay}
         resourceId={resourceId}
-        className="rbc-allday-cell"
+        className={clsx('rbc-allday-cell', isGrouped && 'rbc-allday-cell-alt')}
         selectable={selectable}
         selected={this.props.selected}
         components={components}
@@ -107,7 +109,8 @@ class TimeGridHeader extends React.Component {
         onSelectSlot={this.props.onSelectSlot}
         longPressThreshold={this.props.longPressThreshold}
         resizable={resizable}
-        loading={loading}
+        loadingMore={loadingMore}
+        dateTriggeringShowMore={dateTriggeringShowMore}
         isPopupOpen={isPopupOpen}
       />
     )
@@ -129,7 +132,9 @@ class TimeGridHeader extends React.Component {
       localizer,
       isOverflowing,
       maxRows,
-      loading,
+      loadingMore,
+      isGrouped,
+      dateTriggeringShowMore,
       components: {
         timeGutterHeader: TimeGutterHeader,
         resourceHeader: ResourceHeaderComponent = ResourceHeader,
@@ -192,7 +197,10 @@ class TimeGridHeader extends React.Component {
               range={range}
               events={groupedEvents.get(id) || []}
               resourceId={resource && id}
-              className="rbc-allday-cell"
+              className={clsx(
+                'rbc-allday-cell',
+                isGrouped && 'rbc-allday-cell-alt'
+              )}
               selectable={selectable}
               selected={this.props.selected}
               components={components}
@@ -206,7 +214,8 @@ class TimeGridHeader extends React.Component {
               onSelectSlot={this.props.onSelectSlot}
               longPressThreshold={this.props.longPressThreshold}
               resizable={resizable}
-              loading={loading}
+              loadingMore={loadingMore}
+              dateTriggeringShowMore={dateTriggeringShowMore}
               isPopupOpen={isPopupOpen}
             />
           </div>
@@ -238,8 +247,10 @@ TimeGridHeader.propTypes = {
 
   allDayMaxRows: PropTypes.number,
   maxRows: PropTypes.number,
+  isGrouped: PropTypes.bool,
   isPopupOpen: PropTypes.bool,
-  loading: PropTypes.bool,
+  loadingMore: PropTypes.bool,
+  dateTriggeringShowMore: PropTypes.instanceOf(Date),
 
   onSelectSlot: PropTypes.func,
   onSelectEvent: PropTypes.func,
