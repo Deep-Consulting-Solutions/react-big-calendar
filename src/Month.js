@@ -128,6 +128,7 @@ class MonthView extends React.Component {
       maxRows,
       isPopupOpen,
       isFetchingMoreEvents,
+      dateTriggeringShowMore,
     } = this.props
 
     const { needLimitMeasure, rowLimit } = this.state
@@ -172,7 +173,8 @@ class MonthView extends React.Component {
         resizable={this.props.resizable}
         showAllEvents={showAllEvents}
         isPopupOpen={isPopupOpen}
-        loading={isFetchingMoreEvents}
+        loadingMore={isFetchingMoreEvents}
+        dateTriggeringShowMore={dateTriggeringShowMore}
       />
     )
   }
@@ -342,7 +344,10 @@ class MonthView extends React.Component {
 
     try {
       if (getMoreEvents) {
-        setFetchingMoreEvents(true)
+        setFetchingMoreEvents({
+          isFetchingMoreEvents: true,
+          dateTriggeringShowMore: date,
+        })
         events = await getMoreEvents(date)
       } else {
         events = evts
@@ -351,7 +356,10 @@ class MonthView extends React.Component {
       console.error('Error fetching more events:', error)
       events = evts
     } finally {
-      setFetchingMoreEvents(false)
+      setFetchingMoreEvents({
+        isFetchingMoreEvents: false,
+        dateTriggeringShowMore: null,
+      })
     }
 
     if (popup) {

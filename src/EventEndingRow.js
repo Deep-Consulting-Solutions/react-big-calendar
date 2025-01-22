@@ -75,15 +75,23 @@ class EventEndingRow extends React.Component {
   }
 
   renderShowMore(segments, slot) {
-    let { localizer, slotMetrics, components, loading } = this.props
+    let {
+      localizer,
+      slotMetrics,
+      components,
+      loadingMore,
+      dateTriggeringShowMore,
+    } = this.props
     const events = slotMetrics.getEventsForSlot(slot)
     const remainingEvents = eventsInSlot(segments, slot)
     const count = remainingEvents.length
 
+    const slotDate = slotMetrics.getDateForSlot(slot - 1)
+    const isSameDate = localizer.isSameDate(dateTriggeringShowMore, slotDate)
+
     if (components?.showMore) {
       const ShowMore = components.showMore
       // The received slot seems to be 1-based, but the range we use to pull the date is 0-based
-      const slotDate = slotMetrics.getDateForSlot(slot - 1)
 
       return count ? (
         <ShowMore
@@ -106,7 +114,7 @@ class EventEndingRow extends React.Component {
         className={clsx('rbc-button-link', 'rbc-show-more')}
         onClick={(e) => this.showMore(slot, e)}
       >
-        {loading
+        {loadingMore && isSameDate
           ? 'Loading...'
           : localizer.messages.showMore(count, remainingEvents, events)}
       </button>
@@ -125,8 +133,9 @@ class EventEndingRow extends React.Component {
 EventEndingRow.propTypes = {
   segments: PropTypes.array,
   slots: PropTypes.number,
-  loading: PropTypes.bool,
+  loadingMore: PropTypes.bool,
   onShowMore: PropTypes.func,
+  dateTriggeringShowMore: PropTypes.instanceOf(Date),
   ...EventRowMixin.propTypes,
 }
 

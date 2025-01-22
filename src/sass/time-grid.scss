@@ -35,6 +35,11 @@
     position: relative;
     min-height: 70px;
   }
+
+  .rbc-allday-cell-alt {
+    min-height: 120px;
+  }
+
   .rbc-allday-cell + .rbc-allday-cell {
     border-left: 1px solid $cell-border;
   }
@@ -140,6 +145,10 @@
     user-select: none;
     -webkit-user-select: none;
   }
+}
+
+.rbc-time-content-alt {
+  border-top: none;
 }
 
 .rbc-time-content-day-grouping {
