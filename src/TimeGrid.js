@@ -108,6 +108,7 @@ export default class TimeGrid extends Component {
         setFetchingMoreEvents({
           isFetchingMoreEvents: true,
           dateTriggeringShowMore: date,
+          resourceTriggeringPopup: resourceId,
         })
         events = await getMoreEvents(date)
       } else {
@@ -312,6 +313,7 @@ export default class TimeGrid extends Component {
             hideGutter={this.props.isWeekGrouping}
             loadingMore={isFetchingMoreEvents}
             dateTriggeringShowMore={dateTriggeringShowMore}
+            triggeredLoadingMore={resourceId === resourceTriggeringPopup}
             isPopupOpen={isPopupOpen}
             isGrouped={isGrouped}
           />

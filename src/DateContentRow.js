@@ -126,6 +126,7 @@ class DateContentRow extends React.Component {
       isPopupOpen,
       loadingMore,
       dateTriggeringShowMore,
+      triggeredLoadingMore,
     } = this.props
 
     if (renderForMeasure) return this.renderDummy()
@@ -199,6 +200,7 @@ class DateContentRow extends React.Component {
                   onShowMore={this.handleShowMore}
                   loadingMore={loadingMore}
                   dateTriggeringShowMore={dateTriggeringShowMore}
+                  triggeredLoadingMore={triggeredLoadingMore}
                   {...eventRowProps}
                 />
               )}
@@ -240,6 +242,7 @@ DateContentRow.propTypes = {
   isAllDay: PropTypes.bool,
   isPopupOpen: PropTypes.bool,
   loadingMore: PropTypes.bool,
+  triggeredLoadingMore: PropTypes.bool,
   dateTriggeringShowMore: PropTypes.instanceOf(Date),
 
   accessors: PropTypes.object.isRequired,

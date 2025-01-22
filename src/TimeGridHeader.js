@@ -75,6 +75,7 @@ class TimeGridHeader extends React.Component {
       maxRows,
       loadingMore,
       dateTriggeringShowMore,
+      triggeredLoadingMore,
       isPopupOpen,
       isGrouped,
     } = this.props
@@ -111,6 +112,7 @@ class TimeGridHeader extends React.Component {
         resizable={resizable}
         loadingMore={loadingMore}
         dateTriggeringShowMore={dateTriggeringShowMore}
+        triggeredLoadingMore={triggeredLoadingMore}
         isPopupOpen={isPopupOpen}
       />
     )
@@ -135,6 +137,7 @@ class TimeGridHeader extends React.Component {
       loadingMore,
       isGrouped,
       dateTriggeringShowMore,
+      triggeredLoadingMore,
       components: {
         timeGutterHeader: TimeGutterHeader,
         resourceHeader: ResourceHeaderComponent = ResourceHeader,
@@ -216,6 +219,7 @@ class TimeGridHeader extends React.Component {
               resizable={resizable}
               loadingMore={loadingMore}
               dateTriggeringShowMore={dateTriggeringShowMore}
+              triggeredLoadingMore={triggeredLoadingMore}
               isPopupOpen={isPopupOpen}
             />
           </div>
@@ -250,6 +254,7 @@ TimeGridHeader.propTypes = {
   isGrouped: PropTypes.bool,
   isPopupOpen: PropTypes.bool,
   loadingMore: PropTypes.bool,
+  triggeredLoadingMore: PropTypes.bool,
   dateTriggeringShowMore: PropTypes.instanceOf(Date),
 
   onSelectSlot: PropTypes.func,

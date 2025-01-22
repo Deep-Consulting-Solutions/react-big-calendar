@@ -129,6 +129,8 @@ class MonthView extends React.Component {
       isPopupOpen,
       isFetchingMoreEvents,
       dateTriggeringShowMore,
+      resourceId,
+      resourceTriggeringPopup,
     } = this.props
 
     const { needLimitMeasure, rowLimit } = this.state
@@ -175,6 +177,7 @@ class MonthView extends React.Component {
         isPopupOpen={isPopupOpen}
         loadingMore={isFetchingMoreEvents}
         dateTriggeringShowMore={dateTriggeringShowMore}
+        triggeredLoadingMore={resourceId === resourceTriggeringPopup}
       />
     )
   }
@@ -347,6 +350,7 @@ class MonthView extends React.Component {
         setFetchingMoreEvents({
           isFetchingMoreEvents: true,
           dateTriggeringShowMore: date,
+          resourceTriggeringPopup: resourceId,
         })
         events = await getMoreEvents(date)
       } else {
