@@ -81,6 +81,7 @@ class EventEndingRow extends React.Component {
       components,
       loadingMore,
       dateTriggeringShowMore,
+      triggeredLoadingMore,
     } = this.props
     const events = slotMetrics.getEventsForSlot(slot)
     const remainingEvents = eventsInSlot(segments, slot)
@@ -114,7 +115,7 @@ class EventEndingRow extends React.Component {
         className={clsx('rbc-button-link', 'rbc-show-more')}
         onClick={(e) => this.showMore(slot, e)}
       >
-        {loadingMore && isSameDate
+        {loadingMore && isSameDate && triggeredLoadingMore
           ? 'Loading...'
           : localizer.messages.showMore(count, remainingEvents, events)}
       </button>

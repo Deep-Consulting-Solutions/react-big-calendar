@@ -93,12 +93,12 @@ const getMoreEvents = (date) => {
   console.log({ date })
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve(shifts.map((shift) => formatEvent(shift)))
-    }, 5000)
+      resolve(shifts.map(formatEvent).slice(0, 50))
+    }, 3000)
   })
 }
 
-const events = shifts.map((shift) => formatEvent(shift))
+const events = shifts.map(formatEvent)
 
 const Template = (args) => {
   const [view, setView] = React.useState(Views.MONTH)

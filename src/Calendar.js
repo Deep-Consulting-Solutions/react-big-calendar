@@ -1047,8 +1047,13 @@ class Calendar extends React.Component {
   setFetchingMoreEvents = ({
     isFetchingMoreEvents,
     dateTriggeringShowMore,
+    resourceTriggeringPopup,
   }) => {
-    this.setState({ isFetchingMoreEvents, dateTriggeringShowMore })
+    this.setState({
+      isFetchingMoreEvents,
+      dateTriggeringShowMore,
+      resourceTriggeringPopup,
+    })
   }
 
   getView = () => {
