@@ -352,7 +352,7 @@ class MonthView extends React.Component {
           dateTriggeringShowMore: date,
           resourceTriggeringPopup: resourceId,
         })
-        events = await getMoreEvents(date)
+        events = await getMoreEvents(date, resourceId)
       } else {
         events = evts
       }

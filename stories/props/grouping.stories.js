@@ -89,8 +89,8 @@ export default {
   },
 }
 
-const getMoreEvents = (date) => {
-  console.log({ date })
+const getMoreEvents = (date, resourceId) => {
+  console.log({ date, resourceId })
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(shifts.map(formatEvent).slice(0, 50))

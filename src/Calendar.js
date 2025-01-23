@@ -403,7 +403,7 @@ class Calendar extends React.Component {
      * Callback fired when a +{count} more is clicked to fetch all events for a date
      *
      * ```js
-     * async (date: Date) => TEvent[]
+     * async (date: Date, resourceId: string) => TEvent[]
      * ```
      */
     getMoreEvents: PropTypes.func,
