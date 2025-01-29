@@ -12,7 +12,7 @@ import PopOverlay from './PopOverlay'
 import getWidth from 'dom-helpers/width'
 import getPosition from 'dom-helpers/position'
 import { views } from './utils/constants'
-import { inRange, sortEvents } from './utils/eventLevels'
+import { inRange, sortEvents, sortWeekEvents } from './utils/eventLevels'
 import { notify } from './utils/helpers'
 import Resources from './utils/Resources'
 import { DayLayoutAlgorithmPropType } from './utils/propTypes'
@@ -237,9 +237,19 @@ export default class TimeGrid extends Component {
 
     this.slots = range.length
 
-    let allDayEvents = [],
-      rangeEvents = [],
-      rangeBackgroundEvents = []
+    const rangeEventsAlt = events.filter((e) =>
+      inRange(e, start, end, accessors, localizer)
+    )
+    const rangeBackgroundEventsAlt = backgroundEvents.filter((e) =>
+      inRange(e, start, end, accessors, localizer)
+    )
+    const rangeEvents = sortWeekEvents(rangeEventsAlt, accessors, localizer)
+    const rangeBackgroundEvents = sortWeekEvents(
+      rangeBackgroundEventsAlt,
+      accessors,
+      localizer
+    )
+    let allDayEvents = []
 
     events.forEach((event) => {
       if (inRange(event, start, end, accessors, localizer)) {
@@ -252,15 +262,7 @@ export default class TimeGrid extends Component {
           (!showMultiDayTimes && !localizer.isSameDate(eStart, eEnd))
         ) {
           allDayEvents.push(event)
-        } else {
-          rangeEvents.push(event)
         }
-      }
-    })
-
-    backgroundEvents.forEach((event) => {
-      if (inRange(event, start, end, accessors, localizer)) {
-        rangeBackgroundEvents.push(event)
       }
     })
 
