@@ -1148,6 +1148,49 @@ class Calendar extends React.Component {
       doShowMoreDrillDown: doShowMoreDrillDown,
     }
 
+    const groupingColumnSlot = grouping?.resources?.map((resource, index) => {
+      return (
+        <>
+          {index === 0 ? (
+            <div
+              className={`rbc-header-label-grouping-column rbc-header-label-grouping-column-${view}`}
+            >
+              <span>{grouping.title}</span>
+            </div>
+          ) : null}
+          <div className={`rbc-label-container-grouping-column`}>
+            <div className="rbc-label-grouping-column">
+              <span>{resource.title}</span>
+            </div>
+          </div>
+        </>
+      )
+    })
+
+    const childrenSlot = grouping?.resources?.map((resource, index) => {
+      return (
+        <View
+          {...viewProps}
+          events={events.filter((event) => event.resourceId === resource.id)}
+          resourceId={resource.id}
+          isGrouped={true}
+          hideHeader={index !== 0}
+          onSelectEvent={(...args) =>
+            this.handleSelectEvent(...args, { group: resource })
+          }
+          onDoubleClickEvent={(...args) =>
+            this.handleDoubleClickEvent(...args, { group: resource })
+          }
+          onKeyPressEvent={(...args) =>
+            this.handleKeyPressEvent(...args, { group: resource })
+          }
+          onSelectSlot={(slotInfo) =>
+            this.handleSelectSlot({ ...slotInfo, group: resource })
+          }
+        />
+      )
+    })
+
     return (
       <div
         {...elementProps}
@@ -1165,7 +1208,18 @@ class Calendar extends React.Component {
             localizer={localizer}
           />
         )}
-        {grouping?.resources
+        {grouping?.resources && [views.WEEK, views.DAY].includes(view) ? (
+          <div
+            className="rbc-week-grouping-wrapper"
+            style={{ width: '100%', overflow: 'auto' }}
+          >
+            <div className="rbc-grouping-column with-shadow">
+              {groupingColumnSlot}
+            </div>
+            <div className="rbc-grouping-children-wrapper">{childrenSlot}</div>
+          </div>
+        ) : null}
+        {grouping?.resources && view === views.MONTH
           ? grouping.resources.map((resource, index) => (
               <GroupingView
                 key={resource.id}

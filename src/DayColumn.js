@@ -202,6 +202,7 @@ class DayColumn extends React.Component {
       timeslots,
       dayLayoutAlgorithm,
       resizable,
+      maxRows,
     } = this.props
 
     const { slotMetrics } = this
@@ -213,6 +214,7 @@ class DayColumn extends React.Component {
       slotMetrics,
       minimumStartDifference: Math.ceil((step * timeslots) / 2),
       dayLayoutAlgorithm,
+      maxRows,
     })
 
     return styledEvents.map(({ event, style }, idx) => {
@@ -452,11 +454,13 @@ DayColumn.propTypes = {
   dayLayoutAlgorithm: DayLayoutAlgorithmPropType,
 
   useRow: PropTypes.bool,
+  maxRows: PropTypes.number,
 }
 
 DayColumn.defaultProps = {
   dragThroughEvents: true,
   timeslots: 2,
+  maxRows: 3,
 }
 
 export default DayColumn

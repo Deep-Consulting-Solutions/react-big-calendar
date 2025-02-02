@@ -2,10 +2,12 @@
 
 import overlap from './layout-algorithms/overlap'
 import noOverlap from './layout-algorithms/no-overlap'
+import stacked from './layout-algorithms/stacked'
 
 const DefaultAlgorithms = {
   overlap: overlap,
   'no-overlap': noOverlap,
+  stacked: stacked,
 }
 
 function isFunction(a) {

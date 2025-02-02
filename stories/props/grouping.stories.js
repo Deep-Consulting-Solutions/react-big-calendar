@@ -106,9 +106,10 @@ const Template = (args) => {
     const getDayStyle = (status, style) => ({
       background: status?.bgColor || '',
       color: status?.color,
-      top: 5,
+      top: `${style?.xOffset || 0}px`,
       left: `${style?.top || 0}%`,
       width: `${style?.height || 100}%`,
+      height: '28px',
     })
 
     const getNewStyle = (status, numberOfApplicants) => ({
@@ -182,6 +183,7 @@ Grouping.args = {
   selectable: true,
   popup: true,
   maxRows: 3,
+  dayLayoutAlgorithm: 'stacked',
   messages: {
     showMore: () => {
       return `Show All`
