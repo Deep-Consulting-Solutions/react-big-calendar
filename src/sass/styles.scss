@@ -332,13 +332,13 @@ div.rbc-grouping-column {
   width: 200px;
   position: sticky;
   left: 0;
-  background-color: #FFFFFF;
-  z-index: 20;
+  background-color: #ffffff;
+  z-index: 5;
   height: 100%;
 }
 
 .rbc-grouping-column.with-shadow {
-    box-shadow: 4px 0 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 4px 0 8px rgba(0, 0, 0, 0.1);
 }
 
 .rbc-grouping-children-wrapper {
