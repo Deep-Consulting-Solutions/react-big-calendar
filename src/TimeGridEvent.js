@@ -24,9 +24,11 @@ function TimeGridEvent(props) {
     onKeyPress,
     components: { event: Event, eventWrapper: EventWrapper },
     useRow,
+    isDayGrouping,
   } = props
   let title = accessors.title(event)
-  let tooltip = accessors.tooltip(event)
+  let tooltip =
+    typeof event.tooltip === 'string' ? event.tooltip : accessors.tooltip(event)
   let end = accessors.end(event)
   let start = accessors.start(event)
 
@@ -88,8 +90,10 @@ function TimeGridEvent(props) {
           userProps.className,
           {
             'rbc-selected': selected,
-            'rbc-event-continues-earlier': continuesPrior,
-            'rbc-event-continues-later': continuesAfter,
+            'rbc-event-continues-earlier': isDayGrouping
+              ? false
+              : continuesPrior,
+            'rbc-event-continues-later': isDayGrouping ? false : continuesAfter,
           }
         )}
       >
