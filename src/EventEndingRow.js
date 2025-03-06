@@ -108,7 +108,11 @@ class EventEndingRow extends React.Component {
       )
     }
 
-    return count ? (
+    const allRemainingEventsStartsFromPreviousDate = remainingEvents.every(
+      (e) => localizer.lt(e.start, slotDate, 'day')
+    )
+
+    return count && !allRemainingEventsStartsFromPreviousDate ? (
       <button
         type="button"
         key={'sm_' + slot}
