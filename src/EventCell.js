@@ -38,9 +38,14 @@ class EventCell extends React.Component {
       localizer.diff(start, localizer.ceil(end, 'day'), 'day') > 1
 
     let userProps = getters.eventProp(event, start, end, selected)
+    const tooltipAlt =
+      typeof event.tooltip === 'string' ? event.tooltip : undefined
 
     const content = (
-      <div className="rbc-event-content" title={tooltip || undefined}>
+      <div
+        className="rbc-event-content"
+        title={tooltipAlt || tooltip || undefined}
+      >
         {Event ? (
           <Event
             event={event}

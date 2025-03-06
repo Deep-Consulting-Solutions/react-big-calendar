@@ -24,6 +24,7 @@ import omit from 'lodash/omit'
 import defaults from 'lodash/defaults'
 import transform from 'lodash/transform'
 import mapValues from 'lodash/mapValues'
+import getPosition from 'dom-helpers/position'
 import { wrapAccessor } from './utils/accessors'
 import GroupingWeek from './GroupingWeek'
 import GroupingDay from './GroupingDay'
@@ -946,7 +947,10 @@ class Calendar extends React.Component {
       resourceTriggeringPopup: null,
       isFetchingMoreEvents: false,
       dateTriggeringShowMore: null,
+      groupedResourcesInfo: {},
     }
+
+    this.buttonContainerRef = React.createRef()
   }
   static getDerivedStateFromProps(nextProps) {
     return { context: Calendar.getContext(nextProps) }
@@ -1044,6 +1048,15 @@ class Calendar extends React.Component {
     this.setState({ overlay: null, resourceTriggeringPopup: null })
   }
 
+  updateGroupedResourcesInfo = ({ resourceId, values }) => {
+    this.setState((prevState) => ({
+      groupedResourcesInfo: {
+        ...prevState.groupedResourcesInfo,
+        [resourceId]: values,
+      },
+    }))
+  }
+
   setFetchingMoreEvents = ({
     isFetchingMoreEvents,
     dateTriggeringShowMore,
@@ -1138,6 +1151,7 @@ class Calendar extends React.Component {
       openPopup: this.openPopup,
       closePopup: this.closePopup,
       setFetchingMoreEvents: this.setFetchingMoreEvents,
+      updateGroupedResourcesInfo: this.updateGroupedResourcesInfo,
       isFetchingMoreEvents: this.state.isFetchingMoreEvents,
       dateTriggeringShowMore: this.state.dateTriggeringShowMore,
       overlay: this.state.overlay ?? {},
@@ -1148,7 +1162,10 @@ class Calendar extends React.Component {
       doShowMoreDrillDown: doShowMoreDrillDown,
     }
 
+    const groupedResourcesInfo = this.state.groupedResourcesInfo
+
     const groupingColumnSlot = grouping?.resources?.map((resource, index) => {
+      const metaData = groupedResourcesInfo[resource.id]
       return (
         <>
           {index === 0 ? (
@@ -1158,9 +1175,38 @@ class Calendar extends React.Component {
               <span>{grouping.title}</span>
             </div>
           ) : null}
-          <div className={`rbc-label-container-grouping-column`}>
+          <div
+            className={`rbc-label-container-grouping-column`}
+            ref={this.buttonContainerRef}
+          >
             <div className="rbc-label-grouping-column">
               <span>{resource.title}</span>
+              {view === views.DAY && metaData?.showAll && (
+                <div style={{ marginTop: 4 }}>
+                  <button
+                    type="button"
+                    key={'sm_' + index}
+                    className={clsx('rbc-button-link', 'rbc-show-more')}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      this.handleDayViewShowMore(e.target, {
+                        ...metaData,
+                        viewProps,
+                      })
+                    }}
+                    disabled={
+                      viewProps.resourceTriggeringPopup === resource.id &&
+                      viewProps.isPopupOpen
+                    }
+                  >
+                    {viewProps.isFetchingMoreEvents &&
+                    viewProps.resourceTriggeringPopup === resource.id
+                      ? 'Loading...'
+                      : localizer.messages.showMore()}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </>
@@ -1279,6 +1325,39 @@ class Calendar extends React.Component {
           console.error('onRangeChange prop not supported for this view')
         }
       }
+    }
+  }
+
+  handleDayViewShowMore = async (
+    target,
+    { date, events, resourceId, viewProps }
+  ) => {
+    const { popup, openPopup, getMoreEvents, setFetchingMoreEvents } = viewProps
+
+    let evts = [...events]
+
+    try {
+      if (getMoreEvents) {
+        setFetchingMoreEvents({
+          isFetchingMoreEvents: true,
+          dateTriggeringShowMore: date,
+          resourceTriggeringPopup: resourceId,
+        })
+        evts = await getMoreEvents(date, resourceId)
+      }
+    } catch (error) {
+      console.error('Error fetching more events:', error)
+      evts = events
+    } finally {
+      setFetchingMoreEvents({
+        isFetchingMoreEvents: false,
+        dateTriggeringShowMore: null,
+      })
+    }
+
+    if (popup) {
+      let position = getPosition(target, this.buttonContainerRef.current)
+      openPopup({ date, events: evts, position, target, resourceId })
     }
   }
 
