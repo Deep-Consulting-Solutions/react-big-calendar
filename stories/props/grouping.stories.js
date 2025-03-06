@@ -51,6 +51,7 @@ export function formatEvent(event) {
             height: '22px',
             backgroundColor: '#0069AE',
             color: 'white',
+            ml: '8px',
           }}
         />
       )}
@@ -101,14 +102,20 @@ const getMoreEvents = (date, resourceId) => {
 const events = shifts.map(formatEvent)
 
 const Template = (args) => {
-  const [view, setView] = React.useState(Views.MONTH)
+  const [view, setView] = React.useState(Views.DAY)
   const { components } = useMemo(() => {
-    const getDayStyle = (status, style) => ({
+    const getDayStyle = (status, numberOfApplicants, style) => ({
       background: status?.bgColor || '',
       color: status?.color,
-      top: 5,
+      top: `${style?.xOffset || 0}px`,
       left: `${style?.top || 0}%`,
       width: `${style?.height || 100}%`,
+      height: '28px',
+      marginBottom: '1.5px',
+      ...(status?.label === 'Open' && numberOfApplicants > 0
+        ? { border: '1px solid #0069AE' }
+        : {}),
+      ...(status?.label === 'Expired' ? { border: '1px solid #F4674D' } : {}),
     })
 
     const getNewStyle = (status, numberOfApplicants) => ({
@@ -130,7 +137,7 @@ const Template = (args) => {
 
           const appliedStyle =
             view === Views.DAY
-              ? getDayStyle(status, style)
+              ? getDayStyle(status, numberOfApplicants, style)
               : getNewStyle(status, numberOfApplicants)
 
           // Clone and return the child with updated styles
@@ -182,6 +189,7 @@ Grouping.args = {
   selectable: true,
   popup: true,
   maxRows: 3,
+  dayLayoutAlgorithm: 'stacked',
   messages: {
     showMore: () => {
       return `Show All`

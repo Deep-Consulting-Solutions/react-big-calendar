@@ -31,6 +31,16 @@ class DayColumn extends React.Component {
     if (this.props.isNow) {
       this.setTimeIndicatorPositionUpdateInterval()
     }
+
+    this.props.updateGroupedResourcesInfo({
+      resourceId: this.props.resourceId,
+      values: {
+        resourceId: this.props.resourceId,
+        events: this.props.events,
+        showAll: this.props.events.length > this.props.maxRows,
+        date: this.props.date,
+      },
+    })
   }
 
   componentWillUnmount() {
@@ -39,6 +49,26 @@ class DayColumn extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
+    const isSameDate = this.props.localizer.isSameDate(
+      prevProps.date,
+      this.props.date
+    )
+    if (
+      prevProps.events.length !== this.props.events.length ||
+      prevProps.resourceId !== this.props.resourceId ||
+      prevProps.maxRows !== this.props.maxRows ||
+      !isSameDate
+    ) {
+      this.props.updateGroupedResourcesInfo({
+        resourceId: this.props.resourceId,
+        values: {
+          resourceId: this.props.resourceId,
+          events: this.props.events,
+          showAll: this.props.events.length > this.props.maxRows,
+          date: this.props.date,
+        },
+      })
+    }
     if (this.props.selectable && !prevProps.selectable) this._selectable()
     if (!this.props.selectable && prevProps.selectable)
       this._teardownSelectable()
@@ -109,6 +139,7 @@ class DayColumn extends React.Component {
       resource,
       accessors,
       localizer,
+      isDayGrouping,
       getters: { dayProp, ...getters },
       components: { eventContainerWrapper: EventContainer, ...components },
     } = this.props
@@ -180,7 +211,7 @@ class DayColumn extends React.Component {
             <span>{localizer.format(selectDates, 'selectRangeFormat')}</span>
           </div>
         )}
-        {isNow && this.intervalTriggered && (
+        {isNow && this.intervalTriggered && !isDayGrouping && (
           <div
             className="rbc-current-time-indicator"
             style={{ top: `${this.state.timeIndicatorPosition}%` }}
@@ -202,6 +233,7 @@ class DayColumn extends React.Component {
       timeslots,
       dayLayoutAlgorithm,
       resizable,
+      maxRows,
     } = this.props
 
     const { slotMetrics } = this
@@ -213,9 +245,12 @@ class DayColumn extends React.Component {
       slotMetrics,
       minimumStartDifference: Math.ceil((step * timeslots) / 2),
       dayLayoutAlgorithm,
+      maxRows,
     })
 
-    return styledEvents.map(({ event, style }, idx) => {
+    const slicedEvents = maxRows ? styledEvents.slice(0, maxRows) : styledEvents
+
+    return slicedEvents.map(({ event, style }, idx) => {
       let end = accessors.end(event)
       let start = accessors.start(event)
       let format = 'eventTimeRangeFormat'
@@ -452,11 +487,13 @@ DayColumn.propTypes = {
   dayLayoutAlgorithm: DayLayoutAlgorithmPropType,
 
   useRow: PropTypes.bool,
+  maxRows: PropTypes.number,
 }
 
 DayColumn.defaultProps = {
   dragThroughEvents: true,
   timeslots: 2,
+  maxRows: 3,
 }
 
 export default DayColumn

@@ -224,6 +224,7 @@
 
 .rbc-day-slot-day-grouping {
   width: auto !important;
+  height: 130px;
 }
 
 .rbc-timeslot-group-row {
@@ -319,6 +320,29 @@ div.rbc-time-view {
 
 div.rbc-grouping-column {
   min-width: 200px;
+}
+
+.rbc-week-grouping-wrapper {
+  display: flex;
+  position: relative;
+}
+
+.rbc-grouping-column {
+  flex-shrink: 0;
+  width: 200px;
+  position: sticky;
+  left: 0;
+  background-color: #FFFFFF;
+  z-index: 20;
+  height: 100%;
+}
+
+.rbc-grouping-column.with-shadow {
+    box-shadow: 4px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.rbc-grouping-children-wrapper {
+  flex: 1;
 }
 
 @import './toolbar';

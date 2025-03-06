@@ -24,6 +24,7 @@ import omit from 'lodash/omit'
 import defaults from 'lodash/defaults'
 import transform from 'lodash/transform'
 import mapValues from 'lodash/mapValues'
+import getPosition from 'dom-helpers/position'
 import { wrapAccessor } from './utils/accessors'
 import GroupingWeek from './GroupingWeek'
 import GroupingDay from './GroupingDay'
@@ -946,7 +947,10 @@ class Calendar extends React.Component {
       resourceTriggeringPopup: null,
       isFetchingMoreEvents: false,
       dateTriggeringShowMore: null,
+      groupedResourcesInfo: {},
     }
+
+    this.buttonContainerRef = React.createRef()
   }
   static getDerivedStateFromProps(nextProps) {
     return { context: Calendar.getContext(nextProps) }
@@ -1044,6 +1048,15 @@ class Calendar extends React.Component {
     this.setState({ overlay: null, resourceTriggeringPopup: null })
   }
 
+  updateGroupedResourcesInfo = ({ resourceId, values }) => {
+    this.setState((prevState) => ({
+      groupedResourcesInfo: {
+        ...prevState.groupedResourcesInfo,
+        [resourceId]: values,
+      },
+    }))
+  }
+
   setFetchingMoreEvents = ({
     isFetchingMoreEvents,
     dateTriggeringShowMore,
@@ -1138,6 +1151,7 @@ class Calendar extends React.Component {
       openPopup: this.openPopup,
       closePopup: this.closePopup,
       setFetchingMoreEvents: this.setFetchingMoreEvents,
+      updateGroupedResourcesInfo: this.updateGroupedResourcesInfo,
       isFetchingMoreEvents: this.state.isFetchingMoreEvents,
       dateTriggeringShowMore: this.state.dateTriggeringShowMore,
       overlay: this.state.overlay ?? {},
@@ -1147,6 +1161,81 @@ class Calendar extends React.Component {
       resourceTriggeringPopup: this.state.resourceTriggeringPopup,
       doShowMoreDrillDown: doShowMoreDrillDown,
     }
+
+    const groupedResourcesInfo = this.state.groupedResourcesInfo
+
+    const groupingColumnSlot = grouping?.resources?.map((resource, index) => {
+      const metaData = groupedResourcesInfo[resource.id]
+      return (
+        <>
+          {index === 0 ? (
+            <div
+              className={`rbc-header-label-grouping-column rbc-header-label-grouping-column-${view}`}
+            >
+              <span>{grouping.title}</span>
+            </div>
+          ) : null}
+          <div
+            className={`rbc-label-container-grouping-column`}
+            ref={this.buttonContainerRef}
+          >
+            <div className="rbc-label-grouping-column">
+              <span>{resource.title}</span>
+              {view === views.DAY && metaData?.showAll && (
+                <div style={{ marginTop: 4 }}>
+                  <button
+                    type="button"
+                    key={'sm_' + index}
+                    className={clsx('rbc-button-link', 'rbc-show-more')}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      this.handleDayViewShowMore(e.target, {
+                        ...metaData,
+                        viewProps,
+                      })
+                    }}
+                    disabled={
+                      viewProps.resourceTriggeringPopup === resource.id &&
+                      viewProps.isPopupOpen
+                    }
+                  >
+                    {viewProps.isFetchingMoreEvents &&
+                    viewProps.resourceTriggeringPopup === resource.id
+                      ? 'Loading...'
+                      : localizer.messages.showMore()}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )
+    })
+
+    const childrenSlot = grouping?.resources?.map((resource, index) => {
+      return (
+        <View
+          {...viewProps}
+          events={events.filter((event) => event.resourceId === resource.id)}
+          resourceId={resource.id}
+          isGrouped={true}
+          hideHeader={index !== 0}
+          onSelectEvent={(...args) =>
+            this.handleSelectEvent(...args, { group: resource })
+          }
+          onDoubleClickEvent={(...args) =>
+            this.handleDoubleClickEvent(...args, { group: resource })
+          }
+          onKeyPressEvent={(...args) =>
+            this.handleKeyPressEvent(...args, { group: resource })
+          }
+          onSelectSlot={(slotInfo) =>
+            this.handleSelectSlot({ ...slotInfo, group: resource })
+          }
+        />
+      )
+    })
 
     return (
       <div
@@ -1165,7 +1254,18 @@ class Calendar extends React.Component {
             localizer={localizer}
           />
         )}
-        {grouping?.resources
+        {grouping?.resources && [views.WEEK, views.DAY].includes(view) ? (
+          <div
+            className="rbc-week-grouping-wrapper"
+            style={{ width: '100%', overflow: 'auto' }}
+          >
+            <div className="rbc-grouping-column with-shadow">
+              {groupingColumnSlot}
+            </div>
+            <div className="rbc-grouping-children-wrapper">{childrenSlot}</div>
+          </div>
+        ) : null}
+        {grouping?.resources && view === views.MONTH
           ? grouping.resources.map((resource, index) => (
               <GroupingView
                 key={resource.id}
@@ -1225,6 +1325,39 @@ class Calendar extends React.Component {
           console.error('onRangeChange prop not supported for this view')
         }
       }
+    }
+  }
+
+  handleDayViewShowMore = async (
+    target,
+    { date, events, resourceId, viewProps }
+  ) => {
+    const { popup, openPopup, getMoreEvents, setFetchingMoreEvents } = viewProps
+
+    let evts = [...events]
+
+    try {
+      if (getMoreEvents) {
+        setFetchingMoreEvents({
+          isFetchingMoreEvents: true,
+          dateTriggeringShowMore: date,
+          resourceTriggeringPopup: resourceId,
+        })
+        evts = await getMoreEvents(date, resourceId)
+      }
+    } catch (error) {
+      console.error('Error fetching more events:', error)
+      evts = events
+    } finally {
+      setFetchingMoreEvents({
+        isFetchingMoreEvents: false,
+        dateTriggeringShowMore: null,
+      })
+    }
+
+    if (popup) {
+      let position = getPosition(target, this.buttonContainerRef.current)
+      openPopup({ date, events: evts, position, target, resourceId })
     }
   }
 
