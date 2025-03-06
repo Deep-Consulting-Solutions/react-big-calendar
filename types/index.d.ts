@@ -97,7 +97,7 @@ declare module '@deep-consulting-solutions/react-big-calendar' {
     slotMetrics: any
     accessors: any
   }) => Array<{ event: TEvent; style: React.CSSProperties }>
-  export type DayLayoutAlgorithm = 'overlap' | 'no-overlap'
+  export type DayLayoutAlgorithm = 'overlap' | 'no-overlap' | 'stacked'
   export type NavigateAction = 'PREV' | 'NEXT' | 'TODAY' | 'DATE'
   export interface Event {
     allDay?: boolean | undefined
