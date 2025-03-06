@@ -69,9 +69,35 @@ class DayColumn extends React.Component {
         },
       })
     }
-    if (this.props.selectable && !prevProps.selectable) this._selectable()
-    if (!this.props.selectable && prevProps.selectable)
+    // Initialize or teardown selectable based on `selectable` and `isPopupOpen` values
+    if (
+      !prevProps.selectable &&
+      this.props.selectable &&
+      !this.props.isPopupOpen
+    ) {
+      this._selectable()
+    }
+
+    if (prevProps.selectable && !this.props.selectable) {
       this._teardownSelectable()
+    }
+
+    if (
+      prevProps.isPopupOpen &&
+      !this.props.isPopupOpen &&
+      this.props.selectable
+    ) {
+      this._selectable()
+    }
+
+    // If the popup state has changed and it becomes open, teardown selectable
+    if (
+      !prevProps.isPopupOpen &&
+      this.props.isPopupOpen &&
+      this.props.selectable
+    ) {
+      this._teardownSelectable()
+    }
 
     const { getNow, isNow, localizer, date, min, max } = this.props
     const getNowChanged = localizer.neq(prevProps.getNow(), getNow(), 'minutes')
@@ -234,6 +260,7 @@ class DayColumn extends React.Component {
       dayLayoutAlgorithm,
       resizable,
       maxRows,
+      isDayGrouping,
     } = this.props
 
     const { slotMetrics } = this
@@ -272,7 +299,7 @@ class DayColumn extends React.Component {
         <TimeGridEvent
           style={style}
           event={event}
-          label={label}
+          label={isDayGrouping ? undefined : label}
           key={'evt_' + idx}
           getters={getters}
           rtl={rtl}
@@ -298,7 +325,8 @@ class DayColumn extends React.Component {
           isBackgroundEvent={isBackgroundEvent}
           onKeyPress={(e) => this._keyPress(event, e)}
           resizable={resizable}
-          useRow={this.props.isDayGrouping}
+          useRow={isDayGrouping}
+          isDayGrouping={isDayGrouping}
         />
       )
     })

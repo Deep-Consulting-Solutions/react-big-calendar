@@ -9,7 +9,7 @@ import { shifts, grouping } from '../../data'
 const mLocalizer = momentLocalizer(moment)
 
 export function formatEvent(event) {
-  const { status, shiftNumber, numberOfApplicants, tooltip } = event
+  const { status, shiftNumber, numberOfApplicants, label } = event
 
   const title = (
     <Box
@@ -31,7 +31,7 @@ export function formatEvent(event) {
           flexGrow: 1,
         }}
       >
-        {tooltip}
+        {label}
       </span>
       {status === 'Open' && !!numberOfApplicants && (
         <Chip
