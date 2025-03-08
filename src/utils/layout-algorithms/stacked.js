@@ -127,13 +127,14 @@ export default function getStyledEvents({
   minimumStartDifference,
   slotMetrics,
   accessors,
+  ignoreSort,
 }) {
   // Create proxy events and order them so that we don't have
   // to fiddle with z-indexes.
   const proxies = events.map(
     (event) => new Event(event, { slotMetrics, accessors })
   )
-  const eventsInRenderOrder = sortByRender(proxies)
+  const eventsInRenderOrder = ignoreSort ? proxies : sortByRender(proxies)
 
   // Group overlapping events, while keeping order.
   // Every event is always one of: container, row or leaf.

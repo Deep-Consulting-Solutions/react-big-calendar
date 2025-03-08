@@ -20,6 +20,7 @@ export function getStyledEvents({
   minimumStartDifference,
   slotMetrics,
   accessors,
+  ignoreSort,
   dayLayoutAlgorithm, // one of DefaultAlgorithms keys
   // or custom function
 }) {

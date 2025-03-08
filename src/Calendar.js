@@ -514,6 +514,11 @@ class Calendar extends React.Component {
     popup: PropTypes.bool,
 
     /**
+     * Ignore internal event sorting.
+     */
+    ignoreSort: PropTypes.bool,
+
+    /**
      * Distance in pixels, from the edges of the viewport, the "show more" overlay should be positioned.
      *
      * ```jsx
@@ -921,6 +926,7 @@ class Calendar extends React.Component {
 
     doShowMoreDrillDown: true,
     drilldownView: views.DAY,
+    ignoreSort: false,
 
     titleAccessor: 'title',
     tooltipAccessor: 'title',
