@@ -261,6 +261,7 @@ class DayColumn extends React.Component {
       resizable,
       maxRows,
       isDayGrouping,
+      ignoreSort,
     } = this.props
 
     const { slotMetrics } = this
@@ -273,6 +274,7 @@ class DayColumn extends React.Component {
       minimumStartDifference: Math.ceil((step * timeslots) / 2),
       dayLayoutAlgorithm,
       maxRows,
+      ignoreSort,
     })
 
     const slicedEvents = maxRows ? styledEvents.slice(0, maxRows) : styledEvents
@@ -514,6 +516,7 @@ DayColumn.propTypes = {
 
   dayLayoutAlgorithm: DayLayoutAlgorithmPropType,
 
+  ignoreSort: PropTypes.bool,
   useRow: PropTypes.bool,
   maxRows: PropTypes.number,
 }

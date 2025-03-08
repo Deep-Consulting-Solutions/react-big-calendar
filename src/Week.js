@@ -90,6 +90,7 @@ Week.propTypes = {
   showAllEvents: PropTypes.bool,
   doShowMoreDrillDown: PropTypes.bool,
 
+  ignoreSort: PropTypes.bool,
   popup: PropTypes.bool,
   handleDragStart: PropTypes.func,
 

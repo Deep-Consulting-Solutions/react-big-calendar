@@ -228,6 +228,7 @@ export default class TimeGrid extends Component {
       isFetchingMoreEvents,
       dateTriggeringShowMore,
       isPopupOpen,
+      ignoreSort,
     } = this.props
 
     width = width || this.state.gutterWidth
@@ -243,12 +244,12 @@ export default class TimeGrid extends Component {
     const rangeBackgroundEventsAlt = backgroundEvents.filter((e) =>
       inRange(e, start, end, accessors, localizer)
     )
-    const rangeEvents = sortWeekEvents(rangeEventsAlt, accessors, localizer)
-    const rangeBackgroundEvents = sortWeekEvents(
-      rangeBackgroundEventsAlt,
-      accessors,
-      localizer
-    )
+    const rangeEvents = ignoreSort
+      ? rangeEventsAlt
+      : sortWeekEvents(rangeEventsAlt, accessors, localizer)
+    const rangeBackgroundEvents = ignoreSort
+      ? rangeBackgroundEventsAlt
+      : sortWeekEvents(rangeBackgroundEventsAlt, accessors, localizer)
     let allDayEvents = []
 
     events.forEach((event) => {
@@ -523,6 +524,7 @@ TimeGrid.propTypes = {
   showAllEvents: PropTypes.bool,
   doShowMoreDrillDown: PropTypes.bool,
 
+  ignoreSort: PropTypes.bool,
   popup: PropTypes.bool,
   handleDragStart: PropTypes.func,
 

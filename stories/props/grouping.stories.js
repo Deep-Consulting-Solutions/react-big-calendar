@@ -197,4 +197,5 @@ Grouping.args = {
   },
   getMoreEvents,
   formats: { dayFormat: 'ddd DD' },
+  ignoreSort: true,
 }

@@ -131,6 +131,7 @@ class MonthView extends React.Component {
       dateTriggeringShowMore,
       resourceId,
       resourceTriggeringPopup,
+      ignoreSort,
     } = this.props
 
     const { needLimitMeasure, rowLimit } = this.state
@@ -144,7 +145,9 @@ class MonthView extends React.Component {
       localizer
     )
 
-    const sorted = sortWeekEvents(weeksEvents, accessors, localizer)
+    const sorted = ignoreSort
+      ? weeksEvents
+      : sortWeekEvents(weeksEvents, accessors, localizer)
 
     return (
       <DateContentRow
@@ -450,6 +453,7 @@ MonthView.propTypes = {
   closePopup: PropTypes.func,
   openPopup: PropTypes.func,
 
+  ignoreSort: PropTypes.bool,
   popup: PropTypes.bool,
   handleDragStart: PropTypes.func,
 
