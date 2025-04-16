@@ -163,6 +163,11 @@ const Template = (args) => {
           setView(v)
         }}
         components={components}
+        formats={{
+          dayFormat: 'dddd DD',
+          weekdayFormat: 'dddd',
+          timeGutterFormat: 'h A',
+        }}
       />
     </div>
   )

@@ -519,6 +519,11 @@ class Calendar extends React.Component {
     ignoreSort: PropTypes.bool,
 
     /**
+     * Determines whether to show grouping title.
+     */
+    showGroupingTitle: PropTypes.bool,
+
+    /**
      * Distance in pixels, from the edges of the viewport, the "show more" overlay should be positioned.
      *
      * ```jsx
@@ -927,6 +932,7 @@ class Calendar extends React.Component {
     doShowMoreDrillDown: true,
     drilldownView: views.DAY,
     ignoreSort: false,
+    showGroupingTitle: false,
 
     titleAccessor: 'title',
     tooltipAccessor: 'title',
@@ -1178,11 +1184,11 @@ class Calendar extends React.Component {
             <div
               className={`rbc-header-label-grouping-column rbc-header-label-grouping-column-${view}`}
             >
-              <span>{grouping.title}</span>
+              {viewProps.showGroupingTitle && <span>{grouping.title}</span>}
             </div>
           ) : null}
           <div
-            className={`rbc-label-container-grouping-column`}
+            className={`rbc-label-container-grouping-column rbc-label-container-grouping-column-${view}`}
             ref={this.buttonContainerRef}
           >
             <div className="rbc-label-grouping-column">
@@ -1278,6 +1284,7 @@ class Calendar extends React.Component {
                 resource={resource}
                 index={index}
                 grouping={grouping}
+                showGroupingTitle={viewProps.showGroupingTitle}
               >
                 <View
                   {...viewProps}

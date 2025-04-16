@@ -539,6 +539,7 @@ declare module '@deep-consulting-solutions/react-big-calendar' {
     toolbar?: boolean | undefined
     popup?: boolean | undefined
     ignoreSort?: boolean | undefined
+    showGroupingTitle?: boolean | undefined
     popupOffset?: number | { x: number; y: number } | undefined
     selectable?: boolean | 'ignoreEvents' | undefined
     longPressThreshold?: number | undefined
