@@ -5,13 +5,14 @@ export const GroupingCalendarWeekView = ({
   resource,
   index,
   grouping,
+  showGroupingTitle,
 }) => {
   return (
     <div className="rbc-week-grouping-wrapper">
       <div className="rbc-grouping-column">
         {index === 0 ? (
           <div className="rbc-header-label-grouping-column rbc-header-label-grouping-column-week">
-            <span>{grouping.title}</span>
+            {showGroupingTitle && <span>{grouping.title}</span>}
           </div>
         ) : null}
         <div className="rbc-label-container-grouping-column">

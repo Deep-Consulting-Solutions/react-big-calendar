@@ -111,6 +111,7 @@
   border-bottom: 1px solid $cell-border;
   border-left: 1px solid $cell-border;
   border-top: 1px solid $cell-border;
+  background-color: #ffffff;
 }
 
 .rbc-header-label-grouping-column-week {
@@ -127,13 +128,13 @@
   flex: 1;
   display: flex;
   flex-flow: column nowrap;
-  justify-content: center;
+  padding: 8px 0;
   border-left: 1px solid $cell-border;
   border-bottom: 1px solid $cell-border;
 }
 
 .rbc-label-container-grouping-column-week {
-  border-bottom: 2px solid $cell-border;
+  border-bottom: 1px solid $cell-border;
   position: relative;
 }
 
@@ -148,7 +149,6 @@
 
 .rbc-label-container-grouping-column-week::before {
   position: absolute;
-  border-top: 1px solid $cell-border;
   left: 0px;
   right: 0px;
   top: 0px;
@@ -159,7 +159,6 @@
 
 .rbc-label-container-grouping-column-week::after {
   position: absolute;
-  border-bottom: 1px solid $cell-border;
   left: 0px;
   right: 0px;
   bottom: 0px;
@@ -223,12 +222,11 @@
 }
 
 .rbc-day-slot-day-grouping {
-  width: auto !important;
   height: 130px;
 }
 
 .rbc-timeslot-group-row {
-  width: 100px;
+  width: 52px;
   border-left-width: 0px !important;
 }
 
@@ -277,7 +275,6 @@ div.rbc-day-bg.rbc-off-range-bg {
   display: inline-flex;
   align-items: center;
   height: 37px;
-  border-bottom: 1px solid #ddd;
 }
 
 .rbc-timeslot-group .rbc-time-slot:nth-of-type(2) {
@@ -301,7 +298,6 @@ div.rbc-grouping-column > div > div.rbc-label-grouping-column > span {
   text-align: left;
   vertical-align: middle;
   font-weight: bold;
-  font-size: 90%;
   min-height: 0;
 }
 
@@ -332,7 +328,6 @@ div.rbc-grouping-column {
   width: 200px;
   position: sticky;
   left: 0;
-  background-color: #ffffff;
   z-index: 5;
   height: 100%;
 }
@@ -343,6 +338,32 @@ div.rbc-grouping-column {
 
 .rbc-grouping-children-wrapper {
   flex: 1;
+}
+
+.rbc-label-container-grouping-column-week:nth-child(odd),
+.rbc-label-container-grouping-column-day:nth-child(odd) {
+  background-color: #f8f8f8;
+}
+
+.rbc-label-container-grouping-column-week:nth-child(even),
+.rbc-label-container-grouping-column-day:nth-child(even) {
+  background-color: #ffffff;
+}
+
+.rbc-time-view:nth-child(even) {
+  background-color: #f8f8f8;
+}
+
+.rbc-time-view:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+div.rbc-grouping-wrapper:nth-child(odd) {
+  background-color: #f8f8f8 !important;
+}
+
+div.rbc-grouping-wrapper:nth-child(even) {
+  background-color: #ffffff !important;
 }
 
 @import './toolbar';
