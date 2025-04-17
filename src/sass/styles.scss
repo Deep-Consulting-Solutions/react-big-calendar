@@ -358,12 +358,12 @@ div.rbc-grouping-column {
   background-color: #ffffff;
 }
 
-div.rbc-grouping-wrapper:nth-child(odd) {
-  background-color: #f8f8f8 !important;
+div.rbc-calendar > div.rbc-grouping-wrapper:nth-child(odd) {
+  background-color: #ffffff !important;
 }
 
-div.rbc-grouping-wrapper:nth-child(even) {
-  background-color: #ffffff !important;
+div.rbc-calendar > div.rbc-grouping-wrapper:nth-child(even) {
+  background-color: #f8f8f8 !important;
 }
 
 @import './toolbar';

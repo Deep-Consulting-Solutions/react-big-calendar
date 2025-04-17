@@ -35,7 +35,6 @@
 .rbc-month-view {
   position: relative;
   border: 1px solid $calendar-border;
-  border-top: none;
   display: flex;
   flex-direction: column;
   flex: 1 0 0;
@@ -44,18 +43,6 @@
   -webkit-user-select: none;
 
   height: 100%; // ie-fix
-}
-
-div.rbc-calendar
-  div.rbc-grouping-wrapper:nth-child(2)
-  div.rbc-month-view:nth-child(2) {
-  border-top: 1px solid $calendar-border !important;
-}
-
-div.rbc-calendar
-  div.rbc-grouping-wrapper:nth-child(2)
-  div.rbc-month-view:nth-child(1) {
-  border-top: 1px solid $calendar-border !important;
 }
 
 .rbc-month-header {
