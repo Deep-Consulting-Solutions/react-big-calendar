@@ -69,6 +69,7 @@ Week.propTypes = {
   allDayMaxRows: PropTypes.number,
   isPopupOpen: PropTypes.bool,
   isGrouped: PropTypes.bool,
+  resourceTitle: PropTypes.string,
 
   selected: PropTypes.object,
   selectable: PropTypes.oneOf([true, false, 'ignoreEvents']),

@@ -242,6 +242,7 @@ class MonthView extends React.Component {
       handleDragStart,
       overlay,
       closePopup,
+      resourceTitle,
     } = this.props
 
     return (
@@ -261,6 +262,7 @@ class MonthView extends React.Component {
         show={!!overlay.position}
         overlayDisplay={this.overlayDisplay}
         onHide={closePopup}
+        resourceTitle={resourceTitle}
       />
     )
 
@@ -421,6 +423,7 @@ MonthView.propTypes = {
   step: PropTypes.number,
   getNow: PropTypes.func.isRequired,
 
+  resourceTitle: PropTypes.string,
   maxRows: PropTypes.number,
   isPopupOpen: PropTypes.bool,
   overlay: PropTypes.object,

@@ -108,6 +108,7 @@ function Pop({
   popperRef,
   target,
   offset,
+  resourceTitle,
 }) {
   useClickOutside({ ref: popperRef, callback: show })
   useLayoutEffect(() => {
@@ -130,7 +131,12 @@ function Pop({
   return (
     <div style={style} className="rbc-overlay" ref={popperRef}>
       <div className="rbc-overlay-header">
-        {localizer.format(slotStart, 'dayHeaderFormat')}
+        {resourceTitle && (
+          <span className="rbc-overlay-header-name">{resourceTitle}</span>
+        )}
+        <span className="rbc-overlay-header-date">
+          {localizer.format(slotStart, 'dayHeaderFormat')}
+        </span>
       </div>
       <div className="rbc-overlay-body">
         {events.map((event, idx) => (
@@ -145,16 +151,6 @@ function Pop({
             components={components}
             onDoubleClick={onDoubleClick}
             onKeyPress={onKeyPress}
-            continuesPrior={localizer.lt(
-              accessors.end(event),
-              slotStart,
-              'day'
-            )}
-            continuesAfter={localizer.gte(
-              accessors.start(event),
-              slotEnd,
-              'day'
-            )}
             slotStart={slotStart}
             slotEnd={slotEnd}
             selected={isSelected(event, selected)}
@@ -188,5 +184,6 @@ Popup.propTypes = {
   handleDragStart: PropTypes.func,
   style: PropTypes.object,
   offset: PropTypes.shape({ x: PropTypes.number, y: PropTypes.number }),
+  resourceTitle: PropTypes.string,
 }
 export default Popup

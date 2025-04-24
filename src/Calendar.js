@@ -1231,6 +1231,7 @@ class Calendar extends React.Component {
           {...viewProps}
           events={events.filter((event) => event.resourceId === resource.id)}
           resourceId={resource.id}
+          resourceTitle={resource.title}
           isGrouped={true}
           hideHeader={index !== 0}
           onSelectEvent={(...args) =>
@@ -1292,6 +1293,7 @@ class Calendar extends React.Component {
                     (event) => event.resourceId === resource.id
                   )}
                   resourceId={resource.id}
+                  resourceTitle={resource.title}
                   isGrouped={true}
                   hideHeader={index !== 0}
                   onSelectEvent={(...args) =>
