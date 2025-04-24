@@ -39,7 +39,7 @@
   }
 
   .rbc-allday-cell-alt {
-    min-height: 120px;
+    min-height: 140px;
   }
 
   .rbc-allday-cell + .rbc-allday-cell {
@@ -57,7 +57,7 @@
   }
 }
 
-.rbc-time-view:last-of-type {
+.rbc-time-view.rbc-time-view-week:last-of-type {
   border-bottom: 1px solid $calendar-border;
 }
 
@@ -68,6 +68,10 @@
 
 .rbc-time-view-day-first {
   border-top-width: 1px;
+}
+
+.rbc-time-view.rbc-time-view-day {
+  border-right: none;
 }
 
 .rbc-time-header {

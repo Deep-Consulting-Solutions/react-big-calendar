@@ -167,6 +167,7 @@ const Template = (args) => {
           dayFormat: 'dddd DD',
           weekdayFormat: 'dddd',
           timeGutterFormat: 'h A',
+          dayHeaderFormat: 'dddd, MMMM D, YYYY',
         }}
       />
     </div>

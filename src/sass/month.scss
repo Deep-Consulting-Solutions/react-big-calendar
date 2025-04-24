@@ -120,16 +120,40 @@
 }
 
 .rbc-overlay-header {
-  border-bottom: 1px solid #e5e5e5;
-  margin: -10px -10px 5px -10px;
   padding: 2px 10px;
-  height: 32px;
+  min-height: 70px;
   display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
   align-items: center;
+
+  .rbc-overlay-header-name {
+    font-size: 20px;
+    font-weight: bold;
+    white-space: normal;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    max-width: 350px;
+    text-align: center;
+  }
+  .rbc-overlay-header-date {
+    font-size: 16px;
+  }
 }
 
 .rbc-overlay-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 10px;
   max-height: 500px;
+  min-width: 350px;
   overflow-y: auto;
   overflow-x: hidden;
+
+  .rbc-event {
+    padding: 4px 5px;
+  }
 }

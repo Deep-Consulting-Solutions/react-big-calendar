@@ -274,6 +274,7 @@ export default class TimeGrid extends Component {
         className={clsx(
           'rbc-time-view',
           resources && 'rbc-time-view-resources',
+          !this.props.isDayGrouping && 'rbc-time-view-week',
           this.props.isDayGrouping && 'rbc-time-view-day',
           this.props.isDayGrouping &&
             this.props.isDayGroupingFirst &&
@@ -377,6 +378,7 @@ export default class TimeGrid extends Component {
       selected,
       popupOffset,
       handleDragStart,
+      resourceTitle,
     } = this.props
 
     return (
@@ -396,6 +398,7 @@ export default class TimeGrid extends Component {
         show={!!overlay.position}
         overlayDisplay={this.overlayDisplay}
         onHide={closePopup}
+        resourceTitle={resourceTitle}
       />
     )
   }
@@ -495,6 +498,7 @@ TimeGrid.propTypes = {
   getters: PropTypes.object.isRequired,
   localizer: PropTypes.object.isRequired,
 
+  resourceTitle: PropTypes.string,
   allDayMaxRows: PropTypes.number,
   maxRows: PropTypes.number,
   isPopupOpen: PropTypes.bool,

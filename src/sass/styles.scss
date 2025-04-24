@@ -97,6 +97,7 @@
   flex-flow: column nowrap;
   height: 100%;
   min-width: 120px;
+  align-items: stretch;
 }
 
 .rbc-header-label-grouping-column {
@@ -128,7 +129,6 @@
   flex: 1;
   display: flex;
   flex-flow: column nowrap;
-  padding: 8px 0;
   border-left: 1px solid $cell-border;
   border-bottom: 1px solid $cell-border;
 }
@@ -222,7 +222,7 @@
 }
 
 .rbc-day-slot-day-grouping {
-  height: 130px;
+  height: 140px;
 }
 
 .rbc-timeslot-group-row {
@@ -288,7 +288,7 @@ div.rbc-time-slot {
 }
 
 .rbc-label-grouping-column {
-  padding: 0 8px;
+  padding: 8px;
 }
 
 div.rbc-grouping-column > div > div.rbc-label-grouping-column > span {
