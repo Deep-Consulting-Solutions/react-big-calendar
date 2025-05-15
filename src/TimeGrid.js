@@ -379,8 +379,14 @@ export default class TimeGrid extends Component {
       popupOffset,
       handleDragStart,
       resourceTitle,
+      popupContainerRef,
     } = this.props
 
+    // Determine container ref: use override if provided and mounted, else default to this.containerRef
+    const containerRef =
+      popupContainerRef && popupContainerRef.current
+        ? popupContainerRef
+        : this.containerRef
     return (
       <PopOverlay
         overlay={overlay}
@@ -390,7 +396,7 @@ export default class TimeGrid extends Component {
         getters={getters}
         selected={selected}
         popupOffset={popupOffset}
-        ref={this.containerRef}
+        ref={containerRef}
         handleKeyPressEvent={this.handleKeyPressEvent}
         handleSelectEvent={this.handleSelectEvent}
         handleDoubleClickEvent={this.handleDoubleClickEvent}
@@ -544,6 +550,7 @@ TimeGrid.propTypes = {
   isDayGrouping: PropTypes.bool,
   hideTimeSlots: PropTypes.bool,
   isDayGroupingFirst: PropTypes.bool,
+  popupContainerRef: PropTypes.shape({ current: PropTypes.any }),
 }
 
 TimeGrid.defaultProps = {
