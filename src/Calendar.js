@@ -962,7 +962,7 @@ class Calendar extends React.Component {
       groupedResourcesInfo: {},
     }
 
-    this.buttonContainerRef = React.createRef()
+    this.popupContainerRef = React.createRef()
   }
   static getDerivedStateFromProps(nextProps) {
     return { context: Calendar.getContext(nextProps) }
@@ -1172,6 +1172,7 @@ class Calendar extends React.Component {
       getMoreEvents,
       resourceTriggeringPopup: this.state.resourceTriggeringPopup,
       doShowMoreDrillDown: doShowMoreDrillDown,
+      popupContainerRef: this.popupContainerRef,
     }
 
     const groupedResourcesInfo = this.state.groupedResourcesInfo
@@ -1189,7 +1190,6 @@ class Calendar extends React.Component {
           ) : null}
           <div
             className={`rbc-label-container-grouping-column rbc-label-container-grouping-column-${view}`}
-            ref={this.buttonContainerRef}
           >
             <div className="rbc-label-grouping-column">
               <span>{resource.title}</span>
@@ -1271,6 +1271,7 @@ class Calendar extends React.Component {
           <div
             className="rbc-week-grouping-wrapper"
             style={{ width: '100%', overflow: 'auto' }}
+            ref={this.popupContainerRef}
           >
             <div className="rbc-grouping-column with-shadow">
               {groupingColumnSlot}
@@ -1371,7 +1372,7 @@ class Calendar extends React.Component {
     }
 
     if (popup) {
-      let position = getPosition(target, this.buttonContainerRef.current)
+      let position = getPosition(target, this.popupContainerRef.current)
       openPopup({ date, events: evts, position, target, resourceId })
     }
   }
