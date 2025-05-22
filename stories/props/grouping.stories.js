@@ -102,7 +102,7 @@ const getMoreEvents = (date, resourceId) => {
 const events = shifts.map(formatEvent)
 
 const Template = (args) => {
-  const [view, setView] = React.useState(Views.DAY)
+  const [view, setView] = React.useState(Views.WEEK)
   const { components } = useMemo(() => {
     const getDayStyle = (status, numberOfApplicants, style) => ({
       background: status?.bgColor || '',
