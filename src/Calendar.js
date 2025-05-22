@@ -1267,7 +1267,7 @@ class Calendar extends React.Component {
             localizer={localizer}
           />
         )}
-        {grouping?.resources && [views.WEEK, views.DAY].includes(view) ? (
+        {grouping?.resources && view === views.DAY ? (
           <div
             className="rbc-week-grouping-wrapper"
             style={{ width: '100%', overflow: 'auto' }}
@@ -1279,7 +1279,7 @@ class Calendar extends React.Component {
             <div className="rbc-grouping-children-wrapper">{childrenSlot}</div>
           </div>
         ) : null}
-        {grouping?.resources && view === views.MONTH
+        {grouping?.resources && [views.WEEK, views.MONTH].includes(view)
           ? grouping.resources.map((resource, index) => (
               <GroupingView
                 key={resource.id}
