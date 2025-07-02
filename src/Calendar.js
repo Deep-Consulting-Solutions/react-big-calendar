@@ -967,6 +967,14 @@ class Calendar extends React.Component {
     this.popupContainerRef = React.createRef()
     this.scrollTimeoutId = null
     this.heightMeasured = false // Track if we've measured height yet
+    
+    // Performance optimization: Cache filtered events to prevent re-computation
+    this.filteredEventsCache = new Map()
+    this.lastEventsRef = null
+    this.lastResourcesRef = null
+    
+    // Performance optimization: Bind event handlers to prevent re-creation
+    this.resourceEventHandlerCache = new Map()
   }
   static getDerivedStateFromProps(nextProps) {
     return { context: Calendar.getContext(nextProps) }
@@ -978,6 +986,9 @@ class Calendar extends React.Component {
 
   componentWillUnmount() {
     this.cleanupVirtualization()
+    // Performance optimization: Clear caches to prevent memory leaks
+    this.filteredEventsCache.clear()
+    this.resourceEventHandlerCache.clear()
   }
 
   initializeVirtualization = () => {
@@ -1004,6 +1015,52 @@ class Calendar extends React.Component {
     if (this.scrollTimeoutId) {
       clearTimeout(this.scrollTimeoutId)
     }
+  }
+
+  // Performance optimization: Get filtered events with caching
+  getFilteredEventsForResource = (resourceId, events) => {
+    // Clear cache if events or resources have changed
+    if (this.lastEventsRef !== events || this.lastResourcesRef !== this.props.grouping?.resources) {
+      this.filteredEventsCache.clear()
+      // Also clear event handler cache when resources change to prevent memory leaks
+      if (this.lastResourcesRef !== this.props.grouping?.resources) {
+        this.resourceEventHandlerCache.clear()
+      }
+      this.lastEventsRef = events
+      this.lastResourcesRef = this.props.grouping?.resources
+    }
+
+    // Return cached result if available
+    if (this.filteredEventsCache.has(resourceId)) {
+      return this.filteredEventsCache.get(resourceId)
+    }
+
+    // Filter events for this resource
+    const filteredEvents = events.filter(event => event.resourceId === resourceId)
+    
+    // Cache the result
+    this.filteredEventsCache.set(resourceId, filteredEvents)
+    
+    return filteredEvents
+  }
+
+  // Performance optimization: Get cached event handlers for resources
+  getResourceEventHandlers = (resource) => {
+    const cacheKey = resource.id
+    
+    if (this.resourceEventHandlerCache.has(cacheKey)) {
+      return this.resourceEventHandlerCache.get(cacheKey)
+    }
+
+    const handlers = {
+      onSelectEvent: (...args) => this.handleSelectEvent(...args, { group: resource }),
+      onDoubleClickEvent: (...args) => this.handleDoubleClickEvent(...args, { group: resource }),
+      onKeyPressEvent: (...args) => this.handleKeyPressEvent(...args, { group: resource }),
+      onSelectSlot: (slotInfo) => this.handleSelectSlot({ ...slotInfo, group: resource })
+    }
+
+    this.resourceEventHandlerCache.set(cacheKey, handlers)
+    return handlers
   }
 
   throttle = (func, delay) => {
@@ -1278,7 +1335,7 @@ class Calendar extends React.Component {
 
     const groupedResourcesInfo = this.state.groupedResourcesInfo
 
-    const groupingColumnSlot = grouping?.resources?.map((resource, index) => {
+    const groupingColumnSlot = view === views.DAY && grouping?.resources?.map((resource, index) => {
       const metaData = groupedResourcesInfo[resource.id]
       return (
         <React.Fragment key={resource.id}>
@@ -1326,7 +1383,7 @@ class Calendar extends React.Component {
       )
     })
 
-    const childrenSlot = grouping?.resources?.map((resource, index) => {
+    const childrenSlot =view === views.DAY &&  grouping?.resources?.map((resource, index) => {
       const isVisible = this.state.visibleResources.has(resource.id)
       const placeholderHeight = this.state.measuredResourceHeight || 600 // Fallback to 600px if not measured yet
       
@@ -1335,23 +1392,12 @@ class Calendar extends React.Component {
           key={resource.id}
           id={`rbc-resource-${resource.id}`}
           {...viewProps}
-          events={events.filter((event) => event.resourceId === resource.id)}
+          events={this.getFilteredEventsForResource(resource.id, events)}
           resourceId={resource.id}
           resourceTitle={resource.title}
           isGrouped={true}
           hideHeader={index !== 0}
-          onSelectEvent={(...args) =>
-            this.handleSelectEvent(...args, { group: resource })
-          }
-          onDoubleClickEvent={(...args) =>
-            this.handleDoubleClickEvent(...args, { group: resource })
-          }
-          onKeyPressEvent={(...args) =>
-            this.handleKeyPressEvent(...args, { group: resource })
-          }
-          onSelectSlot={(slotInfo) =>
-            this.handleSelectSlot({ ...slotInfo, group: resource })
-          }
+          {...this.getResourceEventHandlers(resource)}
         />
       ) : (
         <div 
@@ -1408,25 +1454,12 @@ class Calendar extends React.Component {
                 >
                   <View
                     {...viewProps}
-                    events={events.filter(
-                      (event) => event.resourceId === resource.id
-                    )}
+                    events={this.getFilteredEventsForResource(resource.id, events)}
                     resourceId={resource.id}
                     resourceTitle={resource.title}
                     isGrouped={true}
                     hideHeader={index !== 0}
-                    onSelectEvent={(...args) =>
-                      this.handleSelectEvent(...args, { group: resource })
-                    }
-                    onDoubleClickEvent={(...args) =>
-                      this.handleDoubleClickEvent(...args, { group: resource })
-                    }
-                    onKeyPressEvent={(...args) =>
-                      this.handleKeyPressEvent(...args, { group: resource })
-                    }
-                    onSelectSlot={(slotInfo) =>
-                      this.handleSelectSlot({ ...slotInfo, group: resource })
-                    }
+                    {...this.getResourceEventHandlers(resource)}
                   />
                 </GroupingView>
               ) : (
