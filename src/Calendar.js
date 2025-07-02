@@ -962,6 +962,10 @@ class Calendar extends React.Component {
       groupedResourcesInfo: {},
       visibleResources: new Set(), // Track which resources should be rendered
       measuredResourceHeight: null, // Store the measured height of a resource
+      // Progressive rendering state
+      isProgressiveLoading: false,
+      renderedResourceBatches: 0,
+      progressiveRenderComplete: false,
     }
 
     this.popupContainerRef = React.createRef()
@@ -975,6 +979,11 @@ class Calendar extends React.Component {
     
     // Performance optimization: Bind event handlers to prevent re-creation
     this.resourceEventHandlerCache = new Map()
+    
+    // Progressive rendering configuration
+    this.PROGRESSIVE_BATCH_SIZE = 5 // Render 5 resources per batch
+    this.PROGRESSIVE_THRESHOLD = 10 // Only use progressive rendering for 10+ resources
+    this.progressiveRenderTimeouts = [] // Track timeouts for cleanup
   }
   static getDerivedStateFromProps(nextProps) {
     return { context: Calendar.getContext(nextProps) }
@@ -982,10 +991,26 @@ class Calendar extends React.Component {
 
   componentDidMount() {
     this.initializeVirtualization()
+    // Start progressive rendering if needed
+    if (this.shouldUseProgressiveRendering()) {
+      this.startProgressiveRendering()
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    // Restart progressive rendering if resources changed significantly
+    const prevResourceCount = prevProps.grouping?.resources?.length || 0
+    const currentResourceCount = this.props.grouping?.resources?.length || 0
+    
+    if (prevResourceCount !== currentResourceCount && this.shouldUseProgressiveRendering()) {
+      this.cleanupProgressiveRendering()
+      this.startProgressiveRendering()
+    }
   }
 
   componentWillUnmount() {
     this.cleanupVirtualization()
+    this.cleanupProgressiveRendering()
     // Performance optimization: Clear caches to prevent memory leaks
     this.filteredEventsCache.clear()
     this.resourceEventHandlerCache.clear()
@@ -1061,6 +1086,90 @@ class Calendar extends React.Component {
 
     this.resourceEventHandlerCache.set(cacheKey, handlers)
     return handlers
+  }
+
+  // Progressive rendering methods
+  shouldUseProgressiveRendering = () => {
+    const resourceCount = this.props.grouping?.resources?.length || 0
+    return resourceCount >= this.PROGRESSIVE_THRESHOLD
+  }
+
+  startProgressiveRendering = () => {
+    if (!this.shouldUseProgressiveRendering() || this.state.isProgressiveLoading) {
+      return
+    }
+
+    this.setState(prevState => ({
+      ...prevState,
+      isProgressiveLoading: true,
+      renderedResourceBatches: 0,
+      progressiveRenderComplete: false
+    }))
+
+    // Start rendering the first batch after current render cycle completes
+    const timeoutId = setTimeout(() => {
+      this.renderNextResourceBatch()
+    }, 0)
+    
+    this.progressiveRenderTimeouts.push(timeoutId)
+  }
+
+  renderNextResourceBatch = () => {
+    const resourceCount = this.props.grouping?.resources?.length || 0
+    const totalBatches = Math.ceil(resourceCount / this.PROGRESSIVE_BATCH_SIZE)
+    const currentBatch = this.state.renderedResourceBatches
+
+    if (currentBatch >= totalBatches) {
+      // All batches rendered
+      this.setState(prevState => ({
+        ...prevState,
+        isProgressiveLoading: false,
+        progressiveRenderComplete: true
+      }))
+      return
+    }
+
+    // Render next batch
+    this.setState(prevState => ({
+      ...prevState,
+      renderedResourceBatches: currentBatch + 1
+    }))
+
+    // Schedule next batch if not complete
+    if (currentBatch + 1 < totalBatches) {
+      const timeoutId = setTimeout(() => {
+        this.renderNextResourceBatch()
+      }, 0)
+      
+      this.progressiveRenderTimeouts.push(timeoutId)
+    } else {
+      // Final batch, mark as complete
+      this.setState(prevState => ({
+        ...prevState,
+        isProgressiveLoading: false,
+        progressiveRenderComplete: true
+      }))
+    }
+  }
+
+  cleanupProgressiveRendering = () => {
+    // Clear all pending timeouts
+    this.progressiveRenderTimeouts.forEach(timeoutId => {
+      clearTimeout(timeoutId)
+    })
+    this.progressiveRenderTimeouts = []
+  }
+
+  getProgressivelyRenderedResources = () => {
+    if (!this.shouldUseProgressiveRendering() || this.state.progressiveRenderComplete) {
+      return this.props.grouping?.resources || []
+    }
+
+    const resources = this.props.grouping?.resources || []
+    const batchesRendered = this.state.renderedResourceBatches
+    const resourcesToRender = batchesRendered * this.PROGRESSIVE_BATCH_SIZE
+    
+    return resources.slice(0, resourcesToRender)
   }
 
   throttle = (func, delay) => {
@@ -1335,7 +1444,12 @@ class Calendar extends React.Component {
 
     const groupedResourcesInfo = this.state.groupedResourcesInfo
 
-    const groupingColumnSlot = view === views.DAY && grouping?.resources?.map((resource, index) => {
+    // Get progressively rendered resources
+    const resourcesToRender = this.getProgressivelyRenderedResources()
+    const totalResources = grouping?.resources?.length || 0
+    const isProgressiveLoading = this.state.isProgressiveLoading && this.shouldUseProgressiveRendering()
+
+    const groupingColumnSlot = view === views.DAY && resourcesToRender?.map((resource, index) => {
       const metaData = groupedResourcesInfo[resource.id]
       return (
         <React.Fragment key={resource.id}>
@@ -1383,7 +1497,7 @@ class Calendar extends React.Component {
       )
     })
 
-    const childrenSlot =view === views.DAY &&  grouping?.resources?.map((resource, index) => {
+    const childrenSlot = view === views.DAY && resourcesToRender?.map((resource, index) => {
       const isVisible = this.state.visibleResources.has(resource.id)
       const placeholderHeight = this.state.measuredResourceHeight || 600 // Fallback to 600px if not measured yet
       
@@ -1426,6 +1540,28 @@ class Calendar extends React.Component {
             localizer={localizer}
           />
         )}
+        
+        {/* Progressive loading indicator */}
+        {isProgressiveLoading && (
+          <div 
+            style={{ 
+              padding: '8px 16px', 
+              backgroundColor: '#e3f2fd', 
+              borderBottom: '1px solid #90caf9',
+              fontSize: '14px',
+              color: '#1976d2',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            <span>Loading resources...</span>
+            <span>
+              {resourcesToRender.length} of {totalResources} loaded 
+              ({Math.round((resourcesToRender.length / totalResources) * 100)}%)
+            </span>
+          </div>
+        )}
         {grouping?.resources && view === views.DAY ? (
           <div
             className="rbc-week-grouping-wrapper"
@@ -1434,12 +1570,41 @@ class Calendar extends React.Component {
           >
             <div className="rbc-grouping-column with-shadow">
               {groupingColumnSlot}
+              {/* Loading skeleton for remaining resource headers in DAY view */}
+              {isProgressiveLoading && Array.from({ length: totalResources - resourcesToRender.length }, (_, index) => (
+                <div key={`header-skeleton-${index}`} className="rbc-label-container-grouping-column">
+                  <div className="rbc-label-grouping-column" style={{ backgroundColor: '#f5f5f5', padding: '8px', color: '#999' }}>
+                    Loading...
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="rbc-grouping-children-wrapper">{childrenSlot}</div>
+            <div className="rbc-grouping-children-wrapper">
+              {childrenSlot}
+              {/* Loading skeleton for remaining resource content in DAY view */}
+              {isProgressiveLoading && Array.from({ length: totalResources - resourcesToRender.length }, (_, index) => (
+                <div 
+                  key={`content-skeleton-${index}`}
+                  className="rbc-resource-skeleton" 
+                  style={{ 
+                    minHeight: this.state.measuredResourceHeight || '600px',
+                    backgroundColor: '#f5f5f5',
+                    margin: '0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#999',
+                    borderLeft: '1px solid #ddd'
+                  }}
+                >
+                  Loading resource {resourcesToRender.length + index + 1}...
+                </div>
+              ))}
+            </div>
           </div>
         ) : null}
         {grouping?.resources && [views.WEEK, views.MONTH].includes(view)
-          ? grouping.resources.map((resource, index) => {
+          ? resourcesToRender.map((resource, index) => {
               const isVisible = this.state.visibleResources.has(resource.id)
               const placeholderHeight = this.state.measuredResourceHeight || 600 // Fallback to 600px if not measured yet
               
@@ -1472,6 +1637,28 @@ class Calendar extends React.Component {
               )
             })
           : null}
+
+        {/* Loading skeletons for remaining resources during progressive rendering */}
+        {isProgressiveLoading && [views.WEEK, views.MONTH].includes(view) && (
+          Array.from({ length: totalResources - resourcesToRender.length }, (_, index) => (
+            <div 
+              key={`skeleton-${resourcesToRender.length + index}`}
+              className="rbc-resource-skeleton" 
+              style={{ 
+                minHeight: '200px', 
+                backgroundColor: '#f5f5f5',
+                margin: '8px 0',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#999'
+              }}
+            >
+              Loading resource {resourcesToRender.length + index + 1}...
+            </div>
+          ))
+        )}
 
         {!grouping?.resources ? (
           <View {...viewProps} isGrouped={false} />
