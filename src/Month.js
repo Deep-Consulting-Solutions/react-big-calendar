@@ -84,6 +84,7 @@ class MonthView extends React.Component {
         isGrouped,
         resourceId,
         resourceTriggeringPopup,
+        id,
       } = this.props,
       month = localizer.visibleDays(date, localizer),
       weeks = chunk(month, 7)
@@ -92,6 +93,7 @@ class MonthView extends React.Component {
 
     return (
       <div
+        id={id}
         className={clsx('rbc-month-view', className)}
         role="table"
         aria-label="Month View"

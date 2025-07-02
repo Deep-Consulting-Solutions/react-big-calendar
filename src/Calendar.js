@@ -960,13 +960,111 @@ class Calendar extends React.Component {
       isFetchingMoreEvents: false,
       dateTriggeringShowMore: null,
       groupedResourcesInfo: {},
+      visibleResources: new Set(), // Track which resources should be rendered
+      measuredResourceHeight: null, // Store the measured height of a resource
     }
 
     this.popupContainerRef = React.createRef()
+    this.scrollTimeoutId = null
+    this.heightMeasured = false // Track if we've measured height yet
   }
   static getDerivedStateFromProps(nextProps) {
     return { context: Calendar.getContext(nextProps) }
   }
+
+  componentDidMount() {
+    this.initializeVirtualization()
+  }
+
+  componentWillUnmount() {
+    this.cleanupVirtualization()
+  }
+
+  initializeVirtualization = () => {
+    if (!this.props.grouping?.resources) return
+
+    // Initialize all resources as visible initially
+    const allResourceIds = new Set(this.props.grouping.resources.map(r => r.id))
+    this.setState(prevState => ({ ...prevState, visibleResources: allResourceIds }))
+
+    // Set up throttled scroll handler
+    this.handleScroll = this.throttle(this.checkResourceVisibility, 16) // ~60fps
+    window.addEventListener('scroll', this.handleScroll, { passive: true })
+    window.addEventListener('resize', this.handleScroll, { passive: true })
+
+    // Initial visibility check
+    setTimeout(() => this.checkResourceVisibility(), 100)
+  }
+
+  cleanupVirtualization = () => {
+    if (this.handleScroll) {
+      window.removeEventListener('scroll', this.handleScroll)
+      window.removeEventListener('resize', this.handleScroll)
+    }
+    if (this.scrollTimeoutId) {
+      clearTimeout(this.scrollTimeoutId)
+    }
+  }
+
+  throttle = (func, delay) => {
+    return (...args) => {
+      if (this.scrollTimeoutId) {
+        clearTimeout(this.scrollTimeoutId)
+      }
+      this.scrollTimeoutId = setTimeout(() => func.apply(this, args), delay)
+    }
+  }
+
+  checkResourceVisibility = () => {
+    if (!this.props.grouping?.resources) return
+
+    const windowHeight = window.innerHeight
+    const threshold = windowHeight * 2 // 2x window height buffer
+    const newVisibleResources = new Set()
+    let heightToMeasure = null
+
+    this.props.grouping.resources.forEach(resource => {
+      const element = document.getElementById(`rbc-resource-${resource.id}`)
+      if (!element) {
+        // If element doesn't exist yet, assume visible
+        newVisibleResources.add(resource.id)
+        return
+      }
+
+      const rect = element.getBoundingClientRect()
+
+      // Resource is considered visible if it's within threshold of viewport
+      // Element should be visible if:
+      // - Its bottom is not too far above the viewport top (handles elements above viewport)
+      // - Its top is not too far below the viewport bottom (handles elements below viewport)
+      const isInViewport = rect.bottom > -threshold && rect.top < windowHeight + threshold
+      
+      if (isInViewport) {
+        newVisibleResources.add(resource.id)
+        
+        // Measure height from first visible resource if we haven't yet
+        if (!this.heightMeasured && rect.height > 0) {
+          heightToMeasure = rect.height
+        }
+      }
+    })
+
+    // Update measured height if we found one
+    if (heightToMeasure && !this.heightMeasured) {
+      this.heightMeasured = true
+      this.setState(prevState => ({ ...prevState, measuredResourceHeight: heightToMeasure }))
+    }
+
+    // Only update state if visibility changed
+    const currentVisible = this.state.visibleResources
+    const hasChanged = newVisibleResources.size !== currentVisible.size || 
+      ![...newVisibleResources].every(id => currentVisible.has(id))
+
+    if (hasChanged) {
+      this.setState(prevState => ({ ...prevState, visibleResources: newVisibleResources }))
+    }
+  }
+
 
   static getContext({
     startAccessor,
@@ -1050,18 +1148,20 @@ class Calendar extends React.Component {
   }
 
   openPopup = ({ date, events, position, target, resourceId }) => {
-    this.setState({
+    this.setState(prevState => ({
+      ...prevState,
       overlay: { date, events, position, target },
       resourceTriggeringPopup: resourceId,
-    })
+    }))
   }
 
   closePopup = () => {
-    this.setState({ overlay: null, resourceTriggeringPopup: null })
+    this.setState(prevState => ({ ...prevState, overlay: null, resourceTriggeringPopup: null }))
   }
 
   updateGroupedResourcesInfo = ({ resourceId, values }) => {
     this.setState((prevState) => ({
+      ...prevState,
       groupedResourcesInfo: {
         ...prevState.groupedResourcesInfo,
         [resourceId]: values,
@@ -1074,11 +1174,12 @@ class Calendar extends React.Component {
     dateTriggeringShowMore,
     resourceTriggeringPopup,
   }) => {
-    this.setState({
+    this.setState(prevState => ({
+      ...prevState,
       isFetchingMoreEvents,
       dateTriggeringShowMore,
       resourceTriggeringPopup,
-    })
+    }))
   }
 
   getView = () => {
@@ -1180,7 +1281,7 @@ class Calendar extends React.Component {
     const groupingColumnSlot = grouping?.resources?.map((resource, index) => {
       const metaData = groupedResourcesInfo[resource.id]
       return (
-        <>
+        <React.Fragment key={resource.id}>
           {index === 0 ? (
             <div
               className={`rbc-header-label-grouping-column rbc-header-label-grouping-column-${view}`}
@@ -1221,13 +1322,18 @@ class Calendar extends React.Component {
               )}
             </div>
           </div>
-        </>
+        </React.Fragment>
       )
     })
 
     const childrenSlot = grouping?.resources?.map((resource, index) => {
-      return (
+      const isVisible = this.state.visibleResources.has(resource.id)
+      const placeholderHeight = this.state.measuredResourceHeight || 600 // Fallback to 600px if not measured yet
+      
+      return isVisible ? (
         <View
+          key={resource.id}
+          id={`rbc-resource-${resource.id}`}
           {...viewProps}
           events={events.filter((event) => event.resourceId === resource.id)}
           resourceId={resource.id}
@@ -1246,6 +1352,13 @@ class Calendar extends React.Component {
           onSelectSlot={(slotInfo) =>
             this.handleSelectSlot({ ...slotInfo, group: resource })
           }
+        />
+      ) : (
+        <div 
+          key={resource.id}
+          id={`rbc-resource-${resource.id}`}
+          className="rbc-resource-placeholder" 
+          style={{ minHeight: `${placeholderHeight}px` }} 
         />
       )
     })
@@ -1271,7 +1384,7 @@ class Calendar extends React.Component {
           <div
             className="rbc-week-grouping-wrapper"
             style={{ width: '100%', overflow: 'auto' }}
-            ref={this.popupContainerRef}
+              ref={this.popupContainerRef}
           >
             <div className="rbc-grouping-column with-shadow">
               {groupingColumnSlot}
@@ -1280,38 +1393,51 @@ class Calendar extends React.Component {
           </div>
         ) : null}
         {grouping?.resources && [views.WEEK, views.MONTH].includes(view)
-          ? grouping.resources.map((resource, index) => (
-              <GroupingView
-                key={resource.id}
-                resource={resource}
-                index={index}
-                grouping={grouping}
-                showGroupingTitle={viewProps.showGroupingTitle}
-              >
-                <View
-                  {...viewProps}
-                  events={events.filter(
-                    (event) => event.resourceId === resource.id
-                  )}
-                  resourceId={resource.id}
-                  resourceTitle={resource.title}
-                  isGrouped={true}
-                  hideHeader={index !== 0}
-                  onSelectEvent={(...args) =>
-                    this.handleSelectEvent(...args, { group: resource })
-                  }
-                  onDoubleClickEvent={(...args) =>
-                    this.handleDoubleClickEvent(...args, { group: resource })
-                  }
-                  onKeyPressEvent={(...args) =>
-                    this.handleKeyPressEvent(...args, { group: resource })
-                  }
-                  onSelectSlot={(slotInfo) =>
-                    this.handleSelectSlot({ ...slotInfo, group: resource })
-                  }
+          ? grouping.resources.map((resource, index) => {
+              const isVisible = this.state.visibleResources.has(resource.id)
+              const placeholderHeight = this.state.measuredResourceHeight || 600 // Fallback to 600px if not measured yet
+              
+              return isVisible ? (
+                <GroupingView
+                  key={resource.id}
+                  id={`rbc-resource-${resource.id}`}
+                  resource={resource}
+                  index={index}
+                  grouping={grouping}
+                  showGroupingTitle={viewProps.showGroupingTitle}
+                >
+                  <View
+                    {...viewProps}
+                    events={events.filter(
+                      (event) => event.resourceId === resource.id
+                    )}
+                    resourceId={resource.id}
+                    resourceTitle={resource.title}
+                    isGrouped={true}
+                    hideHeader={index !== 0}
+                    onSelectEvent={(...args) =>
+                      this.handleSelectEvent(...args, { group: resource })
+                    }
+                    onDoubleClickEvent={(...args) =>
+                      this.handleDoubleClickEvent(...args, { group: resource })
+                    }
+                    onKeyPressEvent={(...args) =>
+                      this.handleKeyPressEvent(...args, { group: resource })
+                    }
+                    onSelectSlot={(slotInfo) =>
+                      this.handleSelectSlot({ ...slotInfo, group: resource })
+                    }
+                  />
+                </GroupingView>
+              ) : (
+                <div 
+                  key={resource.id}
+                  id={`rbc-resource-${resource.id}`}
+                  className="rbc-resource-placeholder" 
+                  style={{ minHeight: `${placeholderHeight}px` }} 
                 />
-              </GroupingView>
-            ))
+              )
+            })
           : null}
 
         {!grouping?.resources ? (
