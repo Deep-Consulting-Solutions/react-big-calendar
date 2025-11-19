@@ -2,28 +2,31 @@ import PropTypes from 'prop-types'
 import invariant from 'invariant'
 import {
   merge,
-  inRange,
-  lt,
-  lte,
-  gt,
-  gte,
-  eq,
-  neq,
-  startOf,
-  endOf,
-  add,
   range,
   diff,
   duration,
   ceil,
-  min,
-  max,
   firstVisibleDay,
   lastVisibleDay,
   visibleDays,
-  minutes,
   isJustDate,
 } from './utils/dates'
+
+import {
+  minutes,
+  startOf,
+  endOf,
+  add,
+  eq,
+  neq,
+  gte,
+  gt,
+  lte,
+  lt,
+  inRange,
+  min,
+  max,
+} from 'date-arithmetic'
 
 const localePropType = PropTypes.oneOfType([PropTypes.string, PropTypes.func])
 

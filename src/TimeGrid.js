@@ -229,6 +229,7 @@ export default class TimeGrid extends Component {
       dateTriggeringShowMore,
       isPopupOpen,
       ignoreSort,
+      id,
     } = this.props
 
     width = width || this.state.gutterWidth
@@ -271,6 +272,7 @@ export default class TimeGrid extends Component {
 
     return (
       <div
+        id={id}
         className={clsx(
           'rbc-time-view',
           resources && 'rbc-time-view-resources',

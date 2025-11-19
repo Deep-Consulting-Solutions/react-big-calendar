@@ -1,6 +1,6 @@
 // TODO: fix the globalizeLocalizer to work with globalize 1.x
+import { eq } from 'date-arithmetic'
 
-import * as dates from '../utils/dates'
 import oldGlobalize from './oldGlobalize'
 import { DateLocalizer } from '../localizer'
 
@@ -23,7 +23,7 @@ let timeRangeEndFormat = ({ end }, culture, local) =>
 let weekRangeFormat = ({ start, end }, culture, local) =>
   local.format(start, 'MMM dd', culture) +
   ' – ' +
-  local.format(end, dates.eq(start, end, 'month') ? 'dd' : 'MMM dd', culture)
+  local.format(end, eq(start, end, 'month') ? 'dd' : 'MMM dd', culture)
 
 export let formats = {
   dateFormat: 'dd',

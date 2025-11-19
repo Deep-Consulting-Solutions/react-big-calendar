@@ -1,5 +1,5 @@
-import * as dates from '../utils/dates'
 import { DateLocalizer } from '../localizer'
+import { eq } from 'date-arithmetic'
 
 let dateRangeFormat = ({ start, end }, culture, local) =>
   local.format(start, 'd', culture) + ' – ' + local.format(end, 'd', culture)
@@ -16,7 +16,7 @@ let timeRangeEndFormat = ({ end }, culture, local) =>
 let weekRangeFormat = ({ start, end }, culture, local) =>
   local.format(start, 'MMM dd', culture) +
   ' – ' +
-  local.format(end, dates.eq(start, end, 'month') ? 'dd' : 'MMM dd', culture)
+  local.format(end, eq(start, end, 'month') ? 'dd' : 'MMM dd', culture)
 
 export let formats = {
   dateFormat: 'dd',

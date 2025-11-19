@@ -6,9 +6,10 @@ export const GroupingCalendarMonthView = ({
   index,
   grouping,
   showGroupingTitle,
+  id,
 }) => {
   return (
-    <div className="rbc-grouping-wrapper">
+    <div className="rbc-grouping-wrapper" id={id}>
       <div className="rbc-grouping-column">
         {index === 0 ? (
           <div className="rbc-header-label-grouping-column">

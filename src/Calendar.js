@@ -960,12 +960,306 @@ class Calendar extends React.Component {
       isFetchingMoreEvents: false,
       dateTriggeringShowMore: null,
       groupedResourcesInfo: {},
+      visibleResources: new Set(), // Track which resources should be rendered
+      measuredResourceHeight: null, // Store the measured height of a resource
+      // Progressive rendering state
+      isProgressiveLoading: false,
+      renderedResourceBatches: 0,
+      progressiveRenderComplete: false,
     }
 
-    this.buttonContainerRef = React.createRef()
+    this.popupContainerRef = React.createRef()
+    this.scrollTimeoutId = null
+    this.heightMeasured = false // Track if we've measured height yet
+
+    // Performance optimization: Cache filtered events to prevent re-computation
+    this.filteredEventsCache = new Map()
+    this.lastEventsRef = null
+    this.lastResourcesRef = null
+
+    // Performance optimization: Bind event handlers to prevent re-creation
+    this.resourceEventHandlerCache = new Map()
+
+    // Progressive rendering configuration
+    this.PROGRESSIVE_BATCH_SIZE = 5 // Render 5 resources per batch
+    this.PROGRESSIVE_THRESHOLD = 10 // Only use progressive rendering for 10+ resources
+    this.progressiveRenderTimeouts = [] // Track timeouts for cleanup
   }
   static getDerivedStateFromProps(nextProps) {
     return { context: Calendar.getContext(nextProps) }
+  }
+
+  componentDidMount() {
+    this.initializeVirtualization()
+    // Start progressive rendering if needed
+    if (this.shouldUseProgressiveRendering()) {
+      this.startProgressiveRendering()
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    // Restart progressive rendering if resources changed significantly
+    const prevResourceCount = prevProps.grouping?.resources?.length || 0
+    const currentResourceCount = this.props.grouping?.resources?.length || 0
+
+    if (
+      prevResourceCount !== currentResourceCount &&
+      this.shouldUseProgressiveRendering()
+    ) {
+      this.cleanupProgressiveRendering()
+      this.startProgressiveRendering()
+    }
+  }
+
+  componentWillUnmount() {
+    this.cleanupVirtualization()
+    this.cleanupProgressiveRendering()
+    // Performance optimization: Clear caches to prevent memory leaks
+    this.filteredEventsCache.clear()
+    this.resourceEventHandlerCache.clear()
+  }
+
+  initializeVirtualization = () => {
+    if (!this.props.grouping?.resources) return
+
+    // Initialize all resources as visible initially
+    const allResourceIds = new Set(
+      this.props.grouping.resources.map((r) => r.id)
+    )
+    this.setState((prevState) => ({
+      ...prevState,
+      visibleResources: allResourceIds,
+    }))
+
+    // Set up throttled scroll handler
+    this.handleScroll = this.throttle(this.checkResourceVisibility, 16) // ~60fps
+    window.addEventListener('scroll', this.handleScroll, { passive: true })
+    window.addEventListener('resize', this.handleScroll, { passive: true })
+
+    // Initial visibility check
+    setTimeout(() => this.checkResourceVisibility(), 100)
+  }
+
+  cleanupVirtualization = () => {
+    if (this.handleScroll) {
+      window.removeEventListener('scroll', this.handleScroll)
+      window.removeEventListener('resize', this.handleScroll)
+    }
+    if (this.scrollTimeoutId) {
+      clearTimeout(this.scrollTimeoutId)
+    }
+  }
+
+  // Performance optimization: Get filtered events with caching
+  getFilteredEventsForResource = (resourceId, events) => {
+    // Clear cache if events or resources have changed
+    if (
+      this.lastEventsRef !== events ||
+      this.lastResourcesRef !== this.props.grouping?.resources
+    ) {
+      this.filteredEventsCache.clear()
+      // Also clear event handler cache when resources change to prevent memory leaks
+      if (this.lastResourcesRef !== this.props.grouping?.resources) {
+        this.resourceEventHandlerCache.clear()
+      }
+      this.lastEventsRef = events
+      this.lastResourcesRef = this.props.grouping?.resources
+    }
+
+    // Return cached result if available
+    if (this.filteredEventsCache.has(resourceId)) {
+      return this.filteredEventsCache.get(resourceId)
+    }
+
+    // Filter events for this resource
+    const filteredEvents = events.filter(
+      (event) => event.resourceId === resourceId
+    )
+
+    // Cache the result
+    this.filteredEventsCache.set(resourceId, filteredEvents)
+
+    return filteredEvents
+  }
+
+  // Performance optimization: Get cached event handlers for resources
+  getResourceEventHandlers = (resource) => {
+    const cacheKey = resource.id
+
+    if (this.resourceEventHandlerCache.has(cacheKey)) {
+      return this.resourceEventHandlerCache.get(cacheKey)
+    }
+
+    const handlers = {
+      onSelectEvent: (...args) =>
+        this.handleSelectEvent(...args, { group: resource }),
+      onDoubleClickEvent: (...args) =>
+        this.handleDoubleClickEvent(...args, { group: resource }),
+      onKeyPressEvent: (...args) =>
+        this.handleKeyPressEvent(...args, { group: resource }),
+      onSelectSlot: (slotInfo) =>
+        this.handleSelectSlot({ ...slotInfo, group: resource }),
+    }
+
+    this.resourceEventHandlerCache.set(cacheKey, handlers)
+    return handlers
+  }
+
+  // Progressive rendering methods
+  shouldUseProgressiveRendering = () => {
+    const resourceCount = this.props.grouping?.resources?.length || 0
+    return resourceCount >= this.PROGRESSIVE_THRESHOLD
+  }
+
+  startProgressiveRendering = () => {
+    if (
+      !this.shouldUseProgressiveRendering() ||
+      this.state.isProgressiveLoading
+    ) {
+      return
+    }
+
+    this.setState((prevState) => ({
+      ...prevState,
+      isProgressiveLoading: true,
+      renderedResourceBatches: 0,
+      progressiveRenderComplete: false,
+    }))
+
+    // Start rendering the first batch after current render cycle completes
+    const timeoutId = setTimeout(() => {
+      this.renderNextResourceBatch()
+    }, 0)
+
+    this.progressiveRenderTimeouts.push(timeoutId)
+  }
+
+  renderNextResourceBatch = () => {
+    const resourceCount = this.props.grouping?.resources?.length || 0
+    const totalBatches = Math.ceil(resourceCount / this.PROGRESSIVE_BATCH_SIZE)
+    const currentBatch = this.state.renderedResourceBatches
+
+    if (currentBatch >= totalBatches) {
+      // All batches rendered
+      this.setState((prevState) => ({
+        ...prevState,
+        isProgressiveLoading: false,
+        progressiveRenderComplete: true,
+      }))
+      return
+    }
+
+    // Render next batch
+    this.setState((prevState) => ({
+      ...prevState,
+      renderedResourceBatches: currentBatch + 1,
+    }))
+
+    // Schedule next batch if not complete
+    if (currentBatch + 1 < totalBatches) {
+      const timeoutId = setTimeout(() => {
+        this.renderNextResourceBatch()
+      }, 0)
+
+      this.progressiveRenderTimeouts.push(timeoutId)
+    } else {
+      // Final batch, mark as complete
+      this.setState((prevState) => ({
+        ...prevState,
+        isProgressiveLoading: false,
+        progressiveRenderComplete: true,
+      }))
+    }
+  }
+
+  cleanupProgressiveRendering = () => {
+    // Clear all pending timeouts
+    this.progressiveRenderTimeouts.forEach((timeoutId) => {
+      clearTimeout(timeoutId)
+    })
+    this.progressiveRenderTimeouts = []
+  }
+
+  getProgressivelyRenderedResources = () => {
+    if (
+      !this.shouldUseProgressiveRendering() ||
+      this.state.progressiveRenderComplete
+    ) {
+      return this.props.grouping?.resources || []
+    }
+
+    const resources = this.props.grouping?.resources || []
+    const batchesRendered = this.state.renderedResourceBatches
+    const resourcesToRender = batchesRendered * this.PROGRESSIVE_BATCH_SIZE
+
+    return resources.slice(0, resourcesToRender)
+  }
+
+  throttle = (func, delay) => {
+    return (...args) => {
+      if (this.scrollTimeoutId) {
+        clearTimeout(this.scrollTimeoutId)
+      }
+      this.scrollTimeoutId = setTimeout(() => func.apply(this, args), delay)
+    }
+  }
+
+  checkResourceVisibility = () => {
+    if (!this.props.grouping?.resources) return
+
+    const windowHeight = window.innerHeight
+    const threshold = windowHeight * 2 // 2x window height buffer
+    const newVisibleResources = new Set()
+    let heightToMeasure = null
+
+    this.props.grouping.resources.forEach((resource) => {
+      const element = document.getElementById(`rbc-resource-${resource.id}`)
+      if (!element) {
+        // If element doesn't exist yet, assume visible
+        newVisibleResources.add(resource.id)
+        return
+      }
+
+      const rect = element.getBoundingClientRect()
+
+      // Resource is considered visible if it's within threshold of viewport
+      // Element should be visible if:
+      // - Its bottom is not too far above the viewport top (handles elements above viewport)
+      // - Its top is not too far below the viewport bottom (handles elements below viewport)
+      const isInViewport =
+        rect.bottom > -threshold && rect.top < windowHeight + threshold
+
+      if (isInViewport) {
+        newVisibleResources.add(resource.id)
+
+        // Measure height from first visible resource if we haven't yet
+        if (!this.heightMeasured && rect.height > 0) {
+          heightToMeasure = rect.height
+        }
+      }
+    })
+
+    // Update measured height if we found one
+    if (heightToMeasure && !this.heightMeasured) {
+      this.heightMeasured = true
+      this.setState((prevState) => ({
+        ...prevState,
+        measuredResourceHeight: heightToMeasure,
+      }))
+    }
+
+    // Only update state if visibility changed
+    const currentVisible = this.state.visibleResources
+    const hasChanged =
+      newVisibleResources.size !== currentVisible.size ||
+      ![...newVisibleResources].every((id) => currentVisible.has(id))
+
+    if (hasChanged) {
+      this.setState((prevState) => ({
+        ...prevState,
+        visibleResources: newVisibleResources,
+      }))
+    }
   }
 
   static getContext({
@@ -1050,18 +1344,24 @@ class Calendar extends React.Component {
   }
 
   openPopup = ({ date, events, position, target, resourceId }) => {
-    this.setState({
+    this.setState((prevState) => ({
+      ...prevState,
       overlay: { date, events, position, target },
       resourceTriggeringPopup: resourceId,
-    })
+    }))
   }
 
   closePopup = () => {
-    this.setState({ overlay: null, resourceTriggeringPopup: null })
+    this.setState((prevState) => ({
+      ...prevState,
+      overlay: null,
+      resourceTriggeringPopup: null,
+    }))
   }
 
   updateGroupedResourcesInfo = ({ resourceId, values }) => {
     this.setState((prevState) => ({
+      ...prevState,
       groupedResourcesInfo: {
         ...prevState.groupedResourcesInfo,
         [resourceId]: values,
@@ -1074,11 +1374,12 @@ class Calendar extends React.Component {
     dateTriggeringShowMore,
     resourceTriggeringPopup,
   }) => {
-    this.setState({
+    this.setState((prevState) => ({
+      ...prevState,
       isFetchingMoreEvents,
       dateTriggeringShowMore,
       resourceTriggeringPopup,
-    })
+    }))
   }
 
   getView = () => {
@@ -1172,83 +1473,94 @@ class Calendar extends React.Component {
       getMoreEvents,
       resourceTriggeringPopup: this.state.resourceTriggeringPopup,
       doShowMoreDrillDown: doShowMoreDrillDown,
+      popupContainerRef: this.popupContainerRef,
     }
 
     const groupedResourcesInfo = this.state.groupedResourcesInfo
 
-    const groupingColumnSlot = grouping?.resources?.map((resource, index) => {
-      const metaData = groupedResourcesInfo[resource.id]
-      return (
-        <>
-          {index === 0 ? (
-            <div
-              className={`rbc-header-label-grouping-column rbc-header-label-grouping-column-${view}`}
-            >
-              {viewProps.showGroupingTitle && <span>{grouping.title}</span>}
-            </div>
-          ) : null}
-          <div
-            className={`rbc-label-container-grouping-column rbc-label-container-grouping-column-${view}`}
-            ref={this.buttonContainerRef}
-          >
-            <div className="rbc-label-grouping-column">
-              <span>{resource.title}</span>
-              {view === views.DAY && metaData?.showAll && (
-                <div style={{ marginTop: 4 }}>
-                  <button
-                    type="button"
-                    key={'sm_' + index}
-                    className={clsx('rbc-button-link', 'rbc-show-more')}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      this.handleDayViewShowMore(e.target, {
-                        ...metaData,
-                        viewProps,
-                      })
-                    }}
-                    disabled={
-                      viewProps.resourceTriggeringPopup === resource.id &&
-                      viewProps.isPopupOpen
-                    }
-                  >
-                    {viewProps.isFetchingMoreEvents &&
-                    viewProps.resourceTriggeringPopup === resource.id
-                      ? 'Loading...'
-                      : localizer.messages.showMore()}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      )
-    })
+    // Get progressively rendered resources
+    const resourcesToRender = this.getProgressivelyRenderedResources()
+    const totalResources = grouping?.resources?.length || 0
+    const isProgressiveLoading =
+      this.state.isProgressiveLoading && this.shouldUseProgressiveRendering()
 
-    const childrenSlot = grouping?.resources?.map((resource, index) => {
-      return (
-        <View
-          {...viewProps}
-          events={events.filter((event) => event.resourceId === resource.id)}
-          resourceId={resource.id}
-          resourceTitle={resource.title}
-          isGrouped={true}
-          hideHeader={index !== 0}
-          onSelectEvent={(...args) =>
-            this.handleSelectEvent(...args, { group: resource })
-          }
-          onDoubleClickEvent={(...args) =>
-            this.handleDoubleClickEvent(...args, { group: resource })
-          }
-          onKeyPressEvent={(...args) =>
-            this.handleKeyPressEvent(...args, { group: resource })
-          }
-          onSelectSlot={(slotInfo) =>
-            this.handleSelectSlot({ ...slotInfo, group: resource })
-          }
-        />
-      )
-    })
+    const groupingColumnSlot =
+      view === views.DAY &&
+      resourcesToRender?.map((resource, index) => {
+        const metaData = groupedResourcesInfo[resource.id]
+        return (
+          <React.Fragment key={resource.id}>
+            {index === 0 ? (
+              <div
+                className={`rbc-header-label-grouping-column rbc-header-label-grouping-column-${view}`}
+              >
+                {viewProps.showGroupingTitle && <span>{grouping.title}</span>}
+              </div>
+            ) : null}
+            <div
+              className={`rbc-label-container-grouping-column rbc-label-container-grouping-column-${view}`}
+            >
+              <div className="rbc-label-grouping-column">
+                <span>{resource.title}</span>
+                {view === views.DAY && metaData?.showAll && (
+                  <div style={{ marginTop: 4 }}>
+                    <button
+                      type="button"
+                      key={'sm_' + index}
+                      className={clsx('rbc-button-link', 'rbc-show-more')}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        this.handleDayViewShowMore(e.target, {
+                          ...metaData,
+                          viewProps,
+                        })
+                      }}
+                      disabled={
+                        viewProps.resourceTriggeringPopup === resource.id &&
+                        viewProps.isPopupOpen
+                      }
+                    >
+                      {viewProps.isFetchingMoreEvents &&
+                      viewProps.resourceTriggeringPopup === resource.id
+                        ? 'Loading...'
+                        : localizer.messages.showMore()}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </React.Fragment>
+        )
+      })
+
+    const childrenSlot =
+      view === views.DAY &&
+      resourcesToRender?.map((resource, index) => {
+        const isVisible = this.state.visibleResources.has(resource.id)
+        const placeholderHeight = this.state.measuredResourceHeight || 600 // Fallback to 600px if not measured yet
+
+        return isVisible ? (
+          <View
+            key={resource.id}
+            id={`rbc-resource-${resource.id}`}
+            {...viewProps}
+            events={this.getFilteredEventsForResource(resource.id, events)}
+            resourceId={resource.id}
+            resourceTitle={resource.title}
+            isGrouped={true}
+            hideHeader={index !== 0}
+            {...this.getResourceEventHandlers(resource)}
+          />
+        ) : (
+          <div
+            key={resource.id}
+            id={`rbc-resource-${resource.id}`}
+            className="rbc-resource-placeholder"
+            style={{ minHeight: `${placeholderHeight}px` }}
+          />
+        )
+      })
 
     return (
       <div
@@ -1267,51 +1579,149 @@ class Calendar extends React.Component {
             localizer={localizer}
           />
         )}
-        {grouping?.resources && [views.WEEK, views.DAY].includes(view) ? (
+
+        {/* Progressive loading indicator */}
+        {isProgressiveLoading && (
+          <div
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#e3f2fd',
+              borderBottom: '1px solid #90caf9',
+              fontSize: '14px',
+              color: '#1976d2',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <span>Loading resources...</span>
+            <span>
+              {resourcesToRender.length} of {totalResources} loaded (
+              {Math.round((resourcesToRender.length / totalResources) * 100)}%)
+            </span>
+          </div>
+        )}
+        {grouping?.resources && view === views.DAY ? (
           <div
             className="rbc-week-grouping-wrapper"
             style={{ width: '100%', overflow: 'auto' }}
+            ref={this.popupContainerRef}
           >
             <div className="rbc-grouping-column with-shadow">
               {groupingColumnSlot}
+              {/* Loading skeleton for remaining resource headers in DAY view */}
+              {isProgressiveLoading &&
+                Array.from(
+                  { length: totalResources - resourcesToRender.length },
+                  (_, index) => (
+                    <div
+                      key={`header-skeleton-${index}`}
+                      className="rbc-label-container-grouping-column"
+                    >
+                      <div
+                        className="rbc-label-grouping-column"
+                        style={{
+                          backgroundColor: '#f5f5f5',
+                          padding: '8px',
+                          color: '#999',
+                        }}
+                      >
+                        Loading...
+                      </div>
+                    </div>
+                  )
+                )}
             </div>
-            <div className="rbc-grouping-children-wrapper">{childrenSlot}</div>
+            <div className="rbc-grouping-children-wrapper">
+              {childrenSlot}
+              {/* Loading skeleton for remaining resource content in DAY view */}
+              {isProgressiveLoading &&
+                Array.from(
+                  { length: totalResources - resourcesToRender.length },
+                  (_, index) => (
+                    <div
+                      key={`content-skeleton-${index}`}
+                      className="rbc-resource-skeleton"
+                      style={{
+                        minHeight: this.state.measuredResourceHeight || '600px',
+                        backgroundColor: '#f5f5f5',
+                        margin: '0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#999',
+                        borderLeft: '1px solid #ddd',
+                      }}
+                    >
+                      Loading resource {resourcesToRender.length + index + 1}...
+                    </div>
+                  )
+                )}
+            </div>
           </div>
         ) : null}
-        {grouping?.resources && view === views.MONTH
-          ? grouping.resources.map((resource, index) => (
-              <GroupingView
-                key={resource.id}
-                resource={resource}
-                index={index}
-                grouping={grouping}
-                showGroupingTitle={viewProps.showGroupingTitle}
-              >
-                <View
-                  {...viewProps}
-                  events={events.filter(
-                    (event) => event.resourceId === resource.id
-                  )}
-                  resourceId={resource.id}
-                  resourceTitle={resource.title}
-                  isGrouped={true}
-                  hideHeader={index !== 0}
-                  onSelectEvent={(...args) =>
-                    this.handleSelectEvent(...args, { group: resource })
-                  }
-                  onDoubleClickEvent={(...args) =>
-                    this.handleDoubleClickEvent(...args, { group: resource })
-                  }
-                  onKeyPressEvent={(...args) =>
-                    this.handleKeyPressEvent(...args, { group: resource })
-                  }
-                  onSelectSlot={(slotInfo) =>
-                    this.handleSelectSlot({ ...slotInfo, group: resource })
-                  }
+        {grouping?.resources && [views.WEEK, views.MONTH].includes(view)
+          ? resourcesToRender.map((resource, index) => {
+              const isVisible = this.state.visibleResources.has(resource.id)
+              const placeholderHeight = this.state.measuredResourceHeight || 600 // Fallback to 600px if not measured yet
+
+              return isVisible ? (
+                <GroupingView
+                  key={resource.id}
+                  id={`rbc-resource-${resource.id}`}
+                  resource={resource}
+                  index={index}
+                  grouping={grouping}
+                  showGroupingTitle={viewProps.showGroupingTitle}
+                >
+                  <View
+                    {...viewProps}
+                    events={this.getFilteredEventsForResource(
+                      resource.id,
+                      events
+                    )}
+                    resourceId={resource.id}
+                    resourceTitle={resource.title}
+                    isGrouped={true}
+                    hideHeader={index !== 0}
+                    {...this.getResourceEventHandlers(resource)}
+                  />
+                </GroupingView>
+              ) : (
+                <div
+                  key={resource.id}
+                  id={`rbc-resource-${resource.id}`}
+                  className="rbc-resource-placeholder"
+                  style={{ minHeight: `${placeholderHeight}px` }}
                 />
-              </GroupingView>
-            ))
+              )
+            })
           : null}
+
+        {/* Loading skeletons for remaining resources during progressive rendering */}
+        {isProgressiveLoading &&
+          [views.WEEK, views.MONTH].includes(view) &&
+          Array.from(
+            { length: totalResources - resourcesToRender.length },
+            (_, index) => (
+              <div
+                key={`skeleton-${resourcesToRender.length + index}`}
+                className="rbc-resource-skeleton"
+                style={{
+                  minHeight: '200px',
+                  backgroundColor: '#f5f5f5',
+                  margin: '8px 0',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#999',
+                }}
+              >
+                Loading resource {resourcesToRender.length + index + 1}...
+              </div>
+            )
+          )}
 
         {!grouping?.resources ? (
           <View {...viewProps} isGrouped={false} />
@@ -1371,7 +1781,7 @@ class Calendar extends React.Component {
     }
 
     if (popup) {
-      let position = getPosition(target, this.buttonContainerRef.current)
+      let position = getPosition(target, this.popupContainerRef.current)
       openPopup({ date, events: evts, position, target, resourceId })
     }
   }
