@@ -138,6 +138,10 @@ export default class TimeGrid extends Component {
   handleSelectAllDaySlot = (slots, slotInfo) => {
     const { onSelectSlot } = this.props
 
+    // A degenerate selection (e.g. a mouseup with no valid slot indexes) can deliver an
+    // empty slots array; slots[slots.length - 1].getDate() would throw. Nothing to notify.
+    if (!slots.length) return
+
     const start = new Date(slots[0])
     const end = new Date(slots[slots.length - 1])
     end.setDate(slots[slots.length - 1].getDate() + 1)
