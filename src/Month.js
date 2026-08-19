@@ -393,6 +393,10 @@ class MonthView extends React.Component {
 
     this._pendingSelection = []
 
+    // Same guard as TimeGrid.handleSelectAllDaySlot: an empty pending selection would
+    // crash on slots[slots.length - 1].getDate() below.
+    if (!slots.length) return
+
     slots.sort((a, b) => +a - +b)
 
     const start = new Date(slots[0])

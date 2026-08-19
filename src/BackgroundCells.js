@@ -12,6 +12,12 @@ class BackgroundCells extends React.Component {
 
     this.state = {
       selecting: false,
+      // Initialize to the "no selection" sentinel. Without these, a `select` (mouseup) that
+      // fires before any `selecting` tick spreads `undefined` indexes into _selectSlot, and
+      // `undefined !== -1` slips past the guard — producing an empty range.slice() upstream
+      // and a crash in the all-day slot handler (slots[slots.length - 1].getDate()).
+      startIdx: -1,
+      endIdx: -1,
     }
     this.containerRef = createRef()
   }
@@ -167,7 +173,9 @@ class BackgroundCells extends React.Component {
   }
 
   _selectSlot({ endIdx, startIdx, action, bounds, box }) {
-    if (endIdx !== -1 && startIdx !== -1)
+    // Guard against undefined/null as well as the -1 sentinel: state may not have valid
+    // indexes when `select` fires without a preceding `selecting` event on this row.
+    if (Number.isInteger(startIdx) && Number.isInteger(endIdx) && endIdx !== -1 && startIdx !== -1)
       this.props.onSelectSlot &&
         this.props.onSelectSlot({
           start: startIdx,
