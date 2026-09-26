@@ -120,7 +120,7 @@
     "dom-helpers": "^5.2.1",
     "globalize": "^0.1.1",
     "invariant": "^2.2.4",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "lodash-es": "^4.17.21",
     "luxon": "^3.2.1",
     "memoize-one": "^6.0.0",
